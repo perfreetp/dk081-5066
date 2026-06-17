@@ -1,0 +1,148 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: $spacing-xl;
+}
+
+// 顶部城市+搜索
+.header {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  padding: $spacing-md $page-padding $spacing-lg;
+}
+
+.cityRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+.cityIcon {
+  font-size: $font-size-md;
+}
+
+.cityText {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+}
+
+.cityArrow {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.headerSub {
+  margin-left: auto;
+  font-size: $font-size-xs;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  background: $color-bg-card;
+  border-radius: $radius-round;
+  padding: 0 $spacing-md;
+  height: $button-height-md;
+}
+
+.searchIcon {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  margin-right: $spacing-sm;
+}
+
+.searchInput {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.searchBtn {
+  padding: $spacing-xs $spacing-sm;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  white-space: nowrap;
+}
+
+// 急找设备入口条
+.urgentEntry {
+  display: flex;
+  align-items: center;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-md;
+  margin: $spacing-md $page-padding 0;
+  box-shadow: $shadow-card;
+}
+
+.urgentBadge {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: $radius-sm;
+  background: $color-error;
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.urgentEntryText {
+  margin-left: $spacing-sm;
+  flex: 1;
+  min-width: 0;
+}
+
+.urgentEntryTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.urgentEntrySub {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 2rpx;
+}
+
+.urgentEntryBtn {
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-round;
+  background: $color-primary;
+}
+
+.urgentEntryBtnText {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  white-space: nowrap;
+}
+
+// 内容区
+.content {
+  padding: 0 $page-padding;
+}
+
+.broadcastScroll {
+  width: 100%;
+  white-space: nowrap;
+  margin-top: $spacing-sm;
+}
+
+.broadcastInner {
+  display: inline-flex;
+  gap: $spacing-md;
+  padding: $spacing-xs 0 $spacing-sm;
+}
+
+.broadcastItem {
+  display: inline-block;
+  width: 560rpx;
+  vertical-align: top;
+  white-space: normal;
+}

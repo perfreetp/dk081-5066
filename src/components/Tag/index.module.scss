@@ -1,0 +1,46 @@
+@use '@/styles/variables.scss' as *;
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2rpx $spacing-xs;
+  border-radius: $radius-xs;
+  max-width: 100%;
+}
+
+.text {
+  font-size: $font-size-xs;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.md {
+  padding: 6rpx $spacing-sm;
+  border-radius: $radius-sm;
+  .text {
+    font-size: $font-size-sm;
+  }
+}
+
+.orange {
+  background: $color-tag-bg-orange;
+  .text { color: $color-primary; }
+}
+.blue {
+  background: $color-tag-bg-blue;
+  .text { color: $color-info; }
+}
+.green {
+  background: $color-tag-bg-green;
+  .text { color: $color-success; }
+}
+.gray {
+  background: $color-tag-bg-gray;
+  .text { color: $color-text-secondary; }
+}
+.red {
+  background: rgba(245, 63, 63, 0.1);
+  .text { color: $color-error; }
+}

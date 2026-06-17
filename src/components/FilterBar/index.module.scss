@@ -1,0 +1,83 @@
+@use '@/styles/variables.scss' as *;
+
+.wrap {
+  background: $color-bg-card;
+  padding: $spacing-sm $page-padding;
+  box-shadow: $shadow-float;
+}
+
+.scrollView {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.scrollInner {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xs 0;
+}
+
+.catItem {
+  flex-shrink: 0;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-round;
+  background: $color-bg-hover;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+.catActive {
+  background: $color-primary;
+}
+
+.catText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.catActive .catText {
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-xs;
+  background: $color-bg-hover;
+  border: 1rpx solid transparent;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+.toggleActive {
+  background: $color-tag-bg-orange;
+  border-color: $color-primary;
+}
+
+.toggleText {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.toggleActive .toggleText {
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}

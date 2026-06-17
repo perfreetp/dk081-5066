@@ -1,0 +1,282 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: calc(#{$button-height-lg} + #{$spacing-lg} + env(safe-area-inset-bottom));
+}
+
+.content {
+  padding: $spacing-md $page-padding;
+}
+
+// 车源信息
+.machineCard {
+  display: flex;
+  align-items: center;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.machineCover {
+  width: 140rpx;
+  height: 105rpx;
+  border-radius: $radius-sm;
+  background: $color-bg-hover;
+  flex-shrink: 0;
+}
+
+.machineBody {
+  flex: 1;
+  min-width: 0;
+  margin-left: $spacing-md;
+}
+
+.machineTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.machineParty {
+  margin-top: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.machineTime {
+  margin-top: 4rpx;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+// 进度
+.progressCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.progressTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.progressLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.progressValue {
+  font-size: $font-size-lg;
+  color: $color-primary;
+  font-weight: $font-weight-bold;
+}
+
+.progressBar {
+  height: 12rpx;
+  border-radius: $radius-round;
+  background: $color-bg-hover;
+  margin-top: $spacing-sm;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: $radius-round;
+  background: linear-gradient(90deg, $color-primary, $color-primary-light);
+  transition: width $transition-base;
+}
+
+.progressHint {
+  margin-top: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+// 检查项
+.checkList {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-sm $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  padding: $spacing-sm 0;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.checkItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm 0;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.checkItem:last-child {
+  border-bottom: none;
+}
+
+.checkBox {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: $radius-xs;
+  border: 2rpx solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-md;
+  color: $color-text-white;
+  flex-shrink: 0;
+  margin-right: $spacing-sm;
+}
+
+.checked {
+  background: $color-success;
+  border-color: $color-success;
+}
+
+.checkLabel {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.checkStatus {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.checkedStatus {
+  color: $color-success;
+}
+
+// 失败标记
+.failSection {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.failTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.failDesc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-sm;
+}
+
+.reasonRow {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.reasonItem {
+  flex: 1;
+  padding: $spacing-sm 0;
+  border-radius: $radius-md;
+  background: $color-bg-hover;
+  text-align: center;
+  border: 1rpx solid transparent;
+}
+
+.reasonActive {
+  background: rgba(245, 63, 63, 0.08);
+  border-color: $color-error;
+}
+
+.reasonText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.reasonActive .reasonText {
+  color: $color-error;
+  font-weight: $font-weight-medium;
+}
+
+// 底部操作栏
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  gap: $spacing-sm;
+  padding: $spacing-sm $page-padding;
+  padding-bottom: calc(#{$spacing-sm} + env(safe-area-inset-bottom));
+  background: $color-bg-card;
+  box-shadow: $shadow-float;
+}
+
+.failBtn {
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background: $color-bg-hover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+.failBtnText {
+  font-size: $font-size-md;
+  color: $color-error;
+  font-weight: $font-weight-medium;
+}
+
+.confirmBtn {
+  flex: 2;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.confirmBtnText {
+  font-size: $font-size-lg;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+}

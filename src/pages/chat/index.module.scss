@@ -1,0 +1,392 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: $color-bg-page;
+}
+
+.machineBar {
+  display: flex;
+  align-items: center;
+  background: $color-bg-card;
+  padding: $spacing-sm $page-padding;
+  border-bottom: 1rpx solid $color-divider;
+  flex-shrink: 0;
+}
+
+.machineBarCover {
+  width: 64rpx;
+  height: 48rpx;
+  border-radius: $radius-xs;
+  background: $color-bg-hover;
+  flex-shrink: 0;
+}
+
+.machineBarText {
+  flex: 1;
+  min-width: 0;
+  margin-left: $spacing-sm;
+}
+
+.machineBarTitle {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.machineBarSub {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  margin-top: 2rpx;
+}
+
+// 消息列表
+.msgList {
+  flex: 1;
+  padding: $spacing-md $page-padding;
+  overflow-y: auto;
+}
+
+.msgItem {
+  display: flex;
+  margin-bottom: $spacing-md;
+}
+
+.msgItemMine {
+  flex-direction: row-reverse;
+}
+
+.msgAvatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-round;
+  background: $color-bg-hover;
+  flex-shrink: 0;
+}
+
+.msgBubble {
+  max-width: 480rpx;
+  margin: 0 $spacing-sm;
+}
+
+.msgText {
+  display: inline-block;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-loose;
+  box-shadow: $shadow-card;
+  word-break: break-all;
+}
+
+.msgItemMine .msgText {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.msgTime {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+}
+
+.msgItemMine .msgTime {
+  text-align: right;
+}
+
+// 验机重点卡片
+.inspectCard {
+  width: 480rpx;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+}
+
+.inspectHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  background: $color-tag-bg-blue;
+}
+
+.inspectEmoji {
+  font-size: $font-size-md;
+}
+
+.inspectTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-info;
+}
+
+.inspectBody {
+  padding: $spacing-sm $spacing-md;
+}
+
+.inspectTag {
+  display: flex;
+  align-items: flex-start;
+  padding: $spacing-xs 0;
+}
+
+.inspectTagDot {
+  font-size: $font-size-xs;
+  color: $color-info;
+  margin-right: $spacing-xs;
+  margin-top: 2rpx;
+}
+
+.inspectTagText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.5;
+  flex: 1;
+}
+
+// 砍价记录卡片
+.bargainCard {
+  width: 480rpx;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+}
+
+.bargainHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  background: $color-tag-bg-orange;
+}
+
+.bargainEmoji {
+  font-size: $font-size-md;
+}
+
+.bargainTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.bargainBody {
+  padding: $spacing-md;
+}
+
+.bargainPriceRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+}
+
+.bargainFrom {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  text-decoration: line-through;
+}
+
+.bargainArrow {
+  font-size: $font-size-md;
+  color: $color-primary;
+}
+
+.bargainTo {
+  font-size: $font-size-xxl;
+  color: $color-price;
+  font-weight: $font-weight-bold;
+}
+
+.bargainUnit {
+  font-size: $font-size-sm;
+  color: $color-price;
+}
+
+.bargainNote {
+  margin-top: $spacing-sm;
+  padding: $spacing-sm;
+  background: $color-bg-page;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+  text-align: center;
+}
+
+// 底部输入栏
+.inputBar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $page-padding;
+  padding-bottom: calc(#{$spacing-sm} + env(safe-area-inset-bottom));
+  background: $color-bg-card;
+  border-top: 1rpx solid $color-divider;
+  flex-shrink: 0;
+}
+
+.quickBtn {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-round;
+  background: $color-bg-hover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  flex-shrink: 0;
+}
+
+.inputBox {
+  flex: 1;
+  background: $color-bg-page;
+  border-radius: $radius-round;
+  padding: 0 $spacing-md;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.textInput {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.sendBtn {
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-round;
+  background: $color-primary;
+  flex-shrink: 0;
+}
+
+.sendText {
+  font-size: $font-size-sm;
+  color: $color-text-white;
+  white-space: nowrap;
+}
+
+// 底部弹层
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 200;
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 201;
+  background: $color-bg-card;
+  border-radius: $radius-lg $radius-lg 0 0;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.sheetTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  text-align: center;
+  margin-bottom: $spacing-md;
+}
+
+.tagGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.tagPill {
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-round;
+  background: $color-bg-hover;
+  border: 1rpx solid transparent;
+}
+
+.tagPillActive {
+  background: $color-tag-bg-orange;
+  border-color: $color-primary;
+}
+
+.tagPillText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.tagPillActive .tagPillText {
+  color: $color-primary;
+}
+
+.sheetActions {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.sheetBtn {
+  flex: 1;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cancelBtn {
+  background: $color-bg-hover;
+}
+
+.cancelText {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.confirmBtn {
+  background: $color-primary;
+}
+
+.confirmText {
+  font-size: $font-size-md;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}
+
+.sheetField {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm 0;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.sheetFieldLabel {
+  width: 120rpx;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  flex-shrink: 0;
+}
+
+.sheetFieldInput {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}

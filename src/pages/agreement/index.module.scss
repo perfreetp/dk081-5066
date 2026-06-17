@@ -1,0 +1,322 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+}
+
+.tabBar {
+  display: flex;
+  background: $color-bg-card;
+  padding: $spacing-sm $page-padding;
+  box-shadow: $shadow-float;
+}
+
+.tabItem {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-xs 0;
+  position: relative;
+}
+
+.tabText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.tabActive .tabText {
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.tabActive::after {
+  content: '';
+  position: absolute;
+  bottom: -$spacing-sm;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  border-radius: $radius-xs;
+  background: $color-primary;
+}
+
+.list {
+  padding: $spacing-md $page-padding;
+}
+
+// 定金协议卡片
+.agreementItem {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.agreementHeader {
+  display: flex;
+  align-items: center;
+}
+
+.agreementCover {
+  width: 120rpx;
+  height: 90rpx;
+  border-radius: $radius-sm;
+  background: $color-bg-hover;
+  flex-shrink: 0;
+}
+
+.agreementTitleWrap {
+  flex: 1;
+  min-width: 0;
+  margin-left: $spacing-md;
+}
+
+.agreementTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.agreementStatus {
+  display: inline-block;
+  margin-top: $spacing-xs;
+  padding: 2rpx $spacing-sm;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+}
+
+.statusSigned {
+  background: $color-tag-bg-orange;
+  color: $color-primary;
+}
+
+.statusCompleted {
+  background: $color-tag-bg-green;
+  color: $color-success;
+}
+
+.agreementBody {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.partyRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+.partyLabel {
+  width: 120rpx;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+}
+
+.partyValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  margin-top: $spacing-sm;
+}
+
+.priceBlock {
+  flex: 1;
+}
+
+.priceLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.priceNum {
+  font-size: $font-size-xl;
+  color: $color-price;
+  font-weight: $font-weight-bold;
+}
+
+.depositBlock {
+  flex: 1;
+}
+
+.depositNum {
+  font-size: $font-size-xl;
+  color: $color-text-primary;
+  font-weight: $font-weight-bold;
+}
+
+.agreementActions {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.actionBtn {
+  flex: 1;
+  height: $button-height-sm;
+  border-radius: $radius-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+.primaryBtn {
+  background: $color-primary;
+}
+
+.primaryText {
+  font-size: $font-size-sm;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+}
+
+.ghostBtn {
+  background: $color-bg-hover;
+}
+
+.ghostText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+// 失败记录
+.failItem {
+  display: flex;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.failCover {
+  width: 120rpx;
+  height: 90rpx;
+  border-radius: $radius-sm;
+  background: $color-bg-hover;
+  flex-shrink: 0;
+}
+
+.failBody {
+  flex: 1;
+  min-width: 0;
+  margin-left: $spacing-md;
+}
+
+.failTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.failReason {
+  display: inline-block;
+  margin-top: $spacing-xs;
+  padding: 2rpx $spacing-sm;
+  border-radius: $radius-xs;
+  background: rgba(245, 63, 63, 0.1);
+  color: $color-error;
+  font-size: $font-size-xs;
+}
+
+.failNote {
+  margin-top: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.failTime {
+  margin-top: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+// 降价提醒
+.alertItem {
+  display: flex;
+  align-items: center;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-sm;
+  box-shadow: $shadow-card;
+}
+
+.alertIcon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-md;
+  background: $color-tag-bg-orange;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  flex-shrink: 0;
+}
+
+.alertBody {
+  flex: 1;
+  min-width: 0;
+  margin-left: $spacing-md;
+}
+
+.alertTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.alertSub {
+  margin-top: 4rpx;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.alertRight {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.alertMatched {
+  font-size: $font-size-xs;
+  color: $color-success;
+  font-weight: $font-weight-medium;
+}
+
+.alertPriceVal {
+  font-size: $font-size-lg;
+  color: $color-price;
+  font-weight: $font-weight-bold;
+}
+
+.alertTarget {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}

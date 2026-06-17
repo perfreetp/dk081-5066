@@ -1,0 +1,319 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: calc(#{$button-height-lg} + #{$spacing-lg} + env(safe-area-inset-bottom));
+}
+
+// Tab切换
+.tabBar {
+  display: flex;
+  background: $color-bg-card;
+  padding: $spacing-sm $page-padding;
+  box-shadow: $shadow-float;
+}
+
+.tabItem {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-xs 0;
+  position: relative;
+}
+
+.tabText {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.tabActive .tabText {
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.tabActive::after {
+  content: '';
+  position: absolute;
+  bottom: -$spacing-sm;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  border-radius: $radius-xs;
+  background: $color-primary;
+}
+
+// 表单
+.form {
+  padding: $spacing-md $page-padding;
+}
+
+.section {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.sectionIcon {
+  font-size: $font-size-md;
+}
+
+.fieldRow {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm 0;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.fieldRow:last-child {
+  border-bottom: none;
+}
+
+.fieldLabel {
+  width: 180rpx;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  flex-shrink: 0;
+}
+
+.fieldRequired {
+  color: $color-error;
+  margin-left: 2rpx;
+}
+
+.fieldInput {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  text-align: right;
+}
+
+.fieldSuffix {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-left: $spacing-xs;
+}
+
+.fieldValue {
+  flex: 1;
+  text-align: right;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.fieldPlaceholder {
+  color: $color-text-tertiary;
+}
+
+// 视频上传
+.videoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.videoItem {
+  width: calc((100% - #{$spacing-sm}) / 2);
+  aspect-ratio: 4 / 3;
+  border-radius: $radius-md;
+  background: $color-bg-hover;
+  border: 2rpx dashed $color-border;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.videoCover {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.videoPlus {
+  font-size: 48rpx;
+  color: $color-text-tertiary;
+}
+
+.videoLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-top: $spacing-xs;
+}
+
+.videoDesc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 2rpx;
+}
+
+.videoPlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: $radius-round;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoPlayText {
+  color: $color-text-white;
+  font-size: 32rpx;
+  margin-left: 4rpx;
+}
+
+// 勾选项
+.checkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-xs;
+  background: $color-bg-hover;
+}
+
+.checkBox {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: $radius-xs;
+  border: 2rpx solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  color: $color-text-white;
+  flex-shrink: 0;
+}
+
+.checkActive {
+  background: $color-success;
+  border-color: $color-success;
+}
+
+.checkText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+// 我的车源列表
+.myList {
+  padding: $spacing-md $page-padding;
+}
+
+.myItem {
+  display: flex;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-sm;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.myCover {
+  width: 200rpx;
+  height: 150rpx;
+  border-radius: $radius-md;
+  background: $color-bg-hover;
+  flex-shrink: 0;
+}
+
+.myBody {
+  flex: 1;
+  min-width: 0;
+  margin-left: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.myTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.myStatusRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.myPrice {
+  font-size: $font-size-lg;
+  color: $color-price;
+  font-weight: $font-weight-bold;
+}
+
+.myViews {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-left: auto;
+}
+
+// 底部发布按钮
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  padding: $spacing-sm $page-padding;
+  padding-bottom: calc(#{$spacing-sm} + env(safe-area-inset-bottom));
+  background: $color-bg-card;
+  box-shadow: $shadow-float;
+}
+
+.publishBtn {
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.publishBtnText {
+  font-size: $font-size-lg;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+}

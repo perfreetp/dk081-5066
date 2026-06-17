@@ -1,0 +1,324 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: calc(#{$button-height-lg} + #{$spacing-lg} + env(safe-area-inset-bottom));
+}
+
+.swiper {
+  width: 100%;
+  height: 480rpx;
+  background: $color-bg-hover;
+}
+
+.swiperImg {
+  width: 100%;
+  height: 100%;
+}
+
+.imgDots {
+  position: absolute;
+  bottom: $spacing-md;
+  right: $spacing-md;
+  padding: 4rpx $spacing-sm;
+  border-radius: $radius-round;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.imgDotsText {
+  color: $color-text-white;
+  font-size: $font-size-xs;
+}
+
+.content {
+  padding: $spacing-md $page-padding;
+}
+
+// 价格卡片
+.priceCard {
+  background: $color-bg-card;
+  border-radius: 0 0 $radius-lg $radius-lg;
+  margin-top: -$spacing-lg;
+  position: relative;
+  z-index: 2;
+  padding: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+}
+
+.detailTitle {
+  flex: 1;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  line-height: 1.4;
+}
+
+.collectBtn {
+  flex-shrink: 0;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-round;
+  background: $color-tag-bg-orange;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collectIcon {
+  font-size: 32rpx;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  margin-top: $spacing-sm;
+}
+
+.priceSymbol {
+  font-size: $font-size-md;
+  color: $color-price;
+  font-weight: $font-weight-semibold;
+}
+
+.priceValue {
+  font-size: 56rpx;
+  color: $color-price;
+  font-weight: $font-weight-bold;
+  line-height: 1;
+  margin-right: $spacing-xs;
+}
+
+.priceUnit {
+  font-size: $font-size-md;
+  color: $color-price;
+  font-weight: $font-weight-medium;
+}
+
+.priceTag {
+  margin-left: auto;
+  padding: 4rpx $spacing-sm;
+  border-radius: $radius-xs;
+  background: $color-tag-bg-orange;
+  font-size: $font-size-xs;
+  color: $color-primary;
+  white-space: nowrap;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
+}
+
+// 信息卡
+.section {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.sectionIcon {
+  font-size: $font-size-md;
+}
+
+.infoGrid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.infoItem {
+  width: 50%;
+  display: flex;
+  align-items: center;
+  padding: $spacing-xs 0;
+}
+
+.infoLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  width: 140rpx;
+  flex-shrink: 0;
+}
+
+.infoValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 视频
+.videoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.videoItem {
+  width: calc((100% - #{$spacing-sm}) / 2);
+  aspect-ratio: 4 / 3;
+  border-radius: $radius-md;
+  background: $color-bg-hover;
+  position: relative;
+  overflow: hidden;
+}
+
+.videoCover {
+  width: 100%;
+  height: 100%;
+}
+
+.videoPlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-round;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoPlayIcon {
+  color: $color-text-white;
+  font-size: 32rpx;
+  margin-left: 4rpx;
+}
+
+.videoLabel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: $spacing-xs $spacing-sm;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.5));
+  font-size: $font-size-xs;
+  color: $color-text-white;
+}
+
+// 卖家
+.seller {
+  display: flex;
+  align-items: center;
+}
+
+.sellerAvatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $radius-round;
+  background: $color-bg-hover;
+  flex-shrink: 0;
+}
+
+.sellerBody {
+  flex: 1;
+  min-width: 0;
+  margin-left: $spacing-md;
+}
+
+.sellerName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.sellerSub {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.callBtn {
+  flex-shrink: 0;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-round;
+  border: 1rpx solid $color-primary;
+}
+
+.callText {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  white-space: nowrap;
+}
+
+// 底部操作栏
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $page-padding;
+  padding-bottom: calc(#{$spacing-sm} + env(safe-area-inset-bottom));
+  background: $color-bg-card;
+  box-shadow: $shadow-float;
+}
+
+.footerIconBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 96rpx;
+  flex-shrink: 0;
+}
+
+.footerIcon {
+  font-size: 36rpx;
+}
+
+.footerIconText {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  margin-top: 2rpx;
+}
+
+.bookBtn {
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.bookBtnText {
+  font-size: $font-size-lg;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+}

@@ -1,0 +1,229 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: $spacing-xl;
+}
+
+// 用户头部
+.userHeader {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  padding: $spacing-xl $page-padding $spacing-lg;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-round;
+  border: 4rpx solid rgba(255, 255, 255, 0.4);
+  background: $color-bg-hover;
+}
+
+.userText {
+  margin-left: $spacing-md;
+  flex: 1;
+  min-width: 0;
+}
+
+.userName {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+}
+
+.userRole {
+  display: inline-flex;
+  align-items: center;
+  margin-top: $spacing-xs;
+  padding: 2rpx $spacing-sm;
+  border-radius: $radius-xs;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.userRoleText {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+}
+
+.statRow {
+  display: flex;
+  margin-top: $spacing-lg;
+}
+
+.statItem {
+  flex: 1;
+  text-align: center;
+}
+
+.statNum {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 4rpx;
+}
+
+// 功能宫格
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  background: $color-bg-card;
+  margin: $spacing-md $page-padding 0;
+  border-radius: $radius-lg;
+  padding: $spacing-md 0;
+  box-shadow: $shadow-card;
+}
+
+.gridItem {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-sm 0;
+}
+
+.gridIcon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $radius-md;
+  background: $color-tag-bg-orange;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+}
+
+.gridLabel {
+  margin-top: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.gridBadge {
+  position: relative;
+  .gridBadgeDot {
+    position: absolute;
+    top: -4rpx;
+    right: 8rpx;
+    background: $color-error;
+    color: $color-text-white;
+    font-size: 18rpx;
+    min-width: 28rpx;
+    height: 28rpx;
+    line-height: 28rpx;
+    text-align: center;
+    border-radius: $radius-round;
+    padding: 0 6rpx;
+  }
+}
+
+// 内容区
+.content {
+  padding: 0 $page-padding;
+}
+
+// 降价提醒
+.alertItem {
+  display: flex;
+  align-items: center;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-sm;
+  box-shadow: $shadow-card;
+}
+
+.alertIcon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-md;
+  background: $color-tag-bg-orange;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  flex-shrink: 0;
+}
+
+.alertBody {
+  flex: 1;
+  min-width: 0;
+  margin-left: $spacing-md;
+}
+
+.alertTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.alertSub {
+  margin-top: 4rpx;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.alertPrice {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.alertMatched {
+  font-size: $font-size-xs;
+  color: $color-success;
+}
+
+.alertPriceVal {
+  font-size: $font-size-lg;
+  color: $color-price;
+  font-weight: $font-weight-bold;
+}
+
+.alertTarget {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+// 失败统计
+.failSummary {
+  display: flex;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-sm;
+  box-shadow: $shadow-card;
+  gap: $spacing-sm;
+}
+
+.failStat {
+  flex: 1;
+  text-align: center;
+  border-right: 1rpx solid $color-divider;
+}
+
+.failStat:last-child {
+  border-right: none;
+}
+
+.failStatNum {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-error;
+}
+
+.failStatLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
