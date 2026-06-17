@@ -183,4 +183,157 @@
 
 .broadcastList {
   padding: $spacing-md $page-padding;
+  padding-bottom: 160rpx;
+}
+
+.fab {
+  position: fixed;
+  right: $page-padding;
+  bottom: 180rpx;
+  background: $color-primary;
+  color: $color-text-white;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-round;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 0, 0.35);
+  z-index: 10;
+}
+
+.fabText {
+  font-size: $font-size-sm;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}
+
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+
+.sheet {
+  width: 100%;
+  background: $color-bg-card;
+  border-radius: $radius-xl $radius-xl 0 0;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $page-padding;
+  border-bottom: 1rpx solid $color-border;
+}
+
+.sheetTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.sheetClose {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  padding: $spacing-xs;
+}
+
+.sheetBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-md $page-padding;
+}
+
+.formSection {
+  margin-bottom: $spacing-md;
+}
+
+.formRow {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md 0;
+  border-bottom: 1rpx solid $color-border-light;
+}
+
+.formLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  width: 180rpx;
+  flex-shrink: 0;
+}
+
+.formInput {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  text-align: right;
+}
+
+.formTextarea {
+  width: 100%;
+  height: 160rpx;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.tagItem {
+  padding: $spacing-xs $spacing-sm;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  border: 2rpx solid transparent;
+}
+
+.tagActive {
+  background: rgba(255, 107, 0, 0.08);
+  border-color: $color-primary;
+}
+
+.tagText {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.tagActive .tagText {
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.sheetFooter {
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  border-top: 1rpx solid $color-border;
+}
+
+.submitBtn {
+  width: 100%;
+  height: 88rpx;
+  background: $color-primary;
+  border-radius: $radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submitBtnText {
+  font-size: $font-size-md;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
 }

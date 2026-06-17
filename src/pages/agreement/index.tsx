@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import classnames from 'classnames';
-import { mockAgreements, mockFailRecords, FAIL_REASON_OPTIONS } from '@/data/mine';
+import { mockFailRecords, FAIL_REASON_OPTIONS } from '@/data/mine';
 import { useAppStore } from '@/store/useAppStore';
 import { formatPrice, formatRelativeTime, formatDate } from '@/utils/format';
 import EmptyState from '@/components/EmptyState';
@@ -15,6 +15,7 @@ const AgreementPage: React.FC = () => {
   const initialTab = (router.params.tab as Tab) || 'agreement';
   const [tab, setTab] = useState<Tab>(initialTab === 'fail' || initialTab === 'alert' ? initialTab : 'agreement');
 
+  const agreements = useAppStore((s) => s.agreements);
   const priceAlerts = useAppStore((s) => s.priceAlerts);
 
   const failStats = useMemo(() => {
@@ -44,7 +45,7 @@ const AgreementPage: React.FC = () => {
           className={classnames(styles.tabItem, tab === 'agreement' && styles.tabActive)}
           onClick={() => setTab('agreement')}
         >
-          <Text className={styles.tabText}>定金协议({mockAgreements.length})</Text>
+          <Text className={styles.tabText}>定金协议({agreements.length})</Text>
         </View>
         <View
           className={classnames(styles.tabItem, tab === 'fail' && styles.tabActive)}
@@ -63,10 +64,10 @@ const AgreementPage: React.FC = () => {
       <View className={styles.list}>
         {tab === 'agreement' && (
           <>
-            {mockAgreements.length === 0 ? (
+            {agreements.length === 0 ? (
               <EmptyState text="还没有定金协议" hint="买卖双方确认后自动生成" />
             ) : (
-              mockAgreements.map((a) => (
+              agreements.map((a) => (
                 <View key={a.id} className={styles.agreementItem}>
                   <View className={styles.agreementHeader}>
                     <Image className={styles.agreementCover} src={a.machineCover} mode="aspectFill" />

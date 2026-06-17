@@ -390,3 +390,54 @@
   font-size: $font-size-md;
   color: $color-text-primary;
 }
+
+// 成交确认
+.dealMachine {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm $spacing-md;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+}
+
+.dealMachineCover {
+  width: 96rpx;
+  height: 72rpx;
+  border-radius: $radius-sm;
+  flex-shrink: 0;
+}
+
+.dealMachineBody {
+  flex: 1;
+  min-width: 0;
+  margin-left: $spacing-sm;
+}
+
+.dealMachineTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dealMachineSub {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 2rpx;
+}
+
+.dealHint {
+  margin-top: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: rgba(255, 107, 0, 0.06);
+  border-radius: $radius-md;
+}
+
+.dealHintText {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}

@@ -3,9 +3,10 @@ import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
+import { useAppStore } from '@/store/useAppStore';
 import { mockChatMessages, INSPECT_TAG_PRESETS, BARGAIN_NOTE_PRESETS } from '@/data/chatMessages';
 import { mockConversations } from '@/data/conversations';
-import type { ChatMessage } from '@/types';
+import type { ChatMessage, DepositAgreement } from '@/types';
 import { formatPrice, formatRelativeTime } from '@/utils/format';
 import styles from './index.module.scss';
 
@@ -13,16 +14,20 @@ const ChatPage: React.FC = () => {
   const router = useRouter();
   const convId = router.params.id || 'c001';
   const conversation = mockConversations.find((c) => c.id === convId) || mockConversations[0];
+  const addAgreement = useAppStore((s) => s.addAgreement);
+  const currentUser = useAppStore((s) => s.currentUser);
 
   const [messages, setMessages] = useState<ChatMessage[]>(mockChatMessages[convId] || []);
   const [inputText, setInputText] = useState('');
 
   // 弹层状态
-  const [sheetType, setSheetType] = useState<'inspect' | 'bargain' | null>(null);
+  const [sheetType, setSheetType] = useState<'inspect' | 'bargain' | 'deal' | null>(null);
   const [inspectSelected, setInspectSelected] = useState<string[]>([]);
   const [bargainFrom, setBargainFrom] = useState('');
   const [bargainTo, setBargainTo] = useState('');
   const [bargainNote, setBargainNote] = useState('');
+  const [dealPrice, setDealPrice] = useState('');
+  const [dealDeposit, setDealDeposit] = useState('5000');
 
   const scrollRef = useRef<string>('');
 
@@ -82,6 +87,43 @@ const ChatPage: React.FC = () => {
     setBargainTo('');
     setBargainNote('');
     setSheetType(null);
+  };
+
+  const handleConfirmDeal = () => {
+    const price = Number(dealPrice);
+    const deposit = Number(dealDeposit);
+    if (!price || price <= 0) {
+      Taro.showToast({ title: '请输入成交价', icon: 'none' });
+      return;
+    }
+    if (!deposit || deposit <= 0) {
+      Taro.showToast({ title: '请输入定金金额', icon: 'none' });
+      return;
+    }
+    const agreement: DepositAgreement = {
+      id: `da_${Date.now()}`,
+      machineTitle: conversation.machineTitle,
+      machineCover: conversation.machineCover,
+      sellerName: conversation.peerName,
+      buyerName: currentUser.name,
+      dealPrice: price,
+      deposit: deposit,
+      signedAt: new Date().toISOString(),
+      status: 'signed',
+    };
+    addAgreement(agreement);
+    setSheetType(null);
+    setDealPrice('');
+    setDealDeposit('5000');
+    Taro.showModal({
+      title: '成交确认',
+      content: `已生成定金协议\n成交价：¥${formatPrice(price)}万\n定金：¥${deposit.toLocaleString()}元\n可在"我的-定金协议"中查看`,
+      showCancel: false,
+      confirmText: '查看协议',
+      success: () => {
+        Taro.navigateTo({ url: '/pages/agreement/index' });
+      },
+    });
   };
 
   const renderMessage = (msg: ChatMessage) => {
@@ -164,6 +206,9 @@ const ChatPage: React.FC = () => {
         </View>
         <View className={styles.quickBtn} onClick={() => setSheetType('bargain')}>
           <Text>💰</Text>
+        </View>
+        <View className={styles.quickBtn} onClick={() => setSheetType('deal')}>
+          <Text>🤝</Text>
         </View>
         <View className={styles.inputBox}>
           <Input
@@ -253,6 +298,51 @@ const ChatPage: React.FC = () => {
             </View>
             <View className={classnames(styles.sheetBtn, styles.confirmBtn)} onClick={handleSendBargain}>
               <Text className={styles.confirmText}>发送</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {sheetType === 'deal' && (
+        <View className={styles.sheet}>
+          <Text className={styles.sheetTitle}>确认成交</Text>
+          <View className={styles.dealMachine}>
+            <Image className={styles.dealMachineCover} src={conversation.machineCover} mode="aspectFill" />
+            <View className={styles.dealMachineBody}>
+              <Text className={styles.dealMachineTitle}>{conversation.machineTitle}</Text>
+              <Text className={styles.dealMachineSub}>卖家：{conversation.peerName}</Text>
+            </View>
+          </View>
+          <View className={styles.sheetField}>
+            <Text className={styles.sheetFieldLabel}>成交价(万)</Text>
+            <Input
+              className={styles.sheetFieldInput}
+              type="digit"
+              placeholder="请输入成交价"
+              value={dealPrice}
+              onInput={(e) => setDealPrice(e.detail.value)}
+            />
+          </View>
+          <View className={styles.sheetField}>
+            <Text className={styles.sheetFieldLabel}>定金(元)</Text>
+            <Input
+              className={styles.sheetFieldInput}
+              type="digit"
+              placeholder="请输入定金金额"
+              value={dealDeposit}
+              onInput={(e) => setDealDeposit(e.detail.value)}
+            />
+          </View>
+          <View className={styles.dealHint}>
+            <Text className={styles.dealHintText}>
+              确认后将生成简版定金协议，包含车源信息、买卖双方、成交价和定金金额</Text>
+          </View>
+          <View className={styles.sheetActions}>
+            <View className={classnames(styles.sheetBtn, styles.cancelBtn)} onClick={() => setSheetType(null)}>
+              <Text className={styles.cancelText}>取消</Text>
+            </View>
+            <View className={classnames(styles.sheetBtn, styles.confirmBtn)} onClick={handleConfirmDeal}>
+              <Text className={styles.confirmText}>确认成交</Text>
             </View>
           </View>
         </View>

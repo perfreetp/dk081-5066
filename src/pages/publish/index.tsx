@@ -3,8 +3,9 @@ import { View, Text, Input, Image } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import classnames from 'classnames';
 import { VIDEO_TYPES, generateSellPoints } from '@/utils/sellpoint';
-import { mockMyMachines } from '@/data/mine';
-import type { Machine, SellPoint, MachineCategory } from '@/types';
+import { hoursToCondition } from '@/utils/format';
+import { useAppStore } from '@/store/useAppStore';
+import type { Machine, SellPoint, MachineCategory, VerifyVideo } from '@/types';
 import SellPointCard from '@/components/SellPointCard';
 import SectionHeader from '@/components/SectionHeader';
 import EmptyState from '@/components/EmptyState';
@@ -29,12 +30,25 @@ interface FormState {
   city: string;
   site: string;
   minPrice: string;
+  canViewToday: boolean;
+  includeTransport: boolean;
 }
 
 const PublishPage: React.FC = () => {
   const router = useRouter();
   const initialTab = router.params.tab === 'list' ? 'list' : 'form';
   const [tab, setTab] = useState<'form' | 'list'>(initialTab as 'form' | 'list');
+
+  const currentUser = useAppStore((s) => s.currentUser);
+  const machines = useAppStore((s) => s.machines);
+  const myMachineIds = useAppStore((s) => s.myMachineIds);
+  const publishMachine = useAppStore((s) => s.publishMachine);
+  const refreshPriceAlertMatches = useAppStore((s) => s.refreshPriceAlertMatches);
+
+  const myMachines = useMemo(
+    () => machines.filter((m) => myMachineIds.includes(m.id)),
+    [machines, myMachineIds]
+  );
 
   const [form, setForm] = useState<FormState>({
     category: 'excavator',
@@ -43,9 +57,11 @@ const PublishPage: React.FC = () => {
     model: '',
     year: String(new Date().getFullYear()),
     hours: '',
-    city: '成都市',
+    city: currentUser.city,
     site: '',
     minPrice: '',
+    canViewToday: true,
+    includeTransport: false,
   });
 
   const [videos, setVideos] = useState<Record<string, string>>({});
@@ -59,7 +75,7 @@ const PublishPage: React.FC = () => {
     paperComplete: true,
   });
 
-  const updateForm = (key: keyof FormState, value: string) => {
+  const updateForm = (key: keyof FormState, value: string | boolean) => {
     setForm((f) => ({ ...f, [key]: value }));
   };
 
@@ -97,9 +113,24 @@ const PublishPage: React.FC = () => {
       brand: form.brand || '品牌待填',
       sellPoint,
     });
+    const videoList: VerifyVideo[] = VIDEO_TYPES
+      .filter((v) => !!videos[v.type])
+      .map((v) => ({
+        type: v.type,
+        label: v.label,
+        cover: videos[v.type],
+        url: '',
+      }));
+    const cond = hoursToCondition(Number(form.hours) || 0);
+    const cover = videos.engineStart
+      ? videos.engineStart
+      : 'https://picsum.photos/id/787/600/450';
+    const imageList = videoList.length > 0
+      ? videoList.map((v) => v.cover)
+      : ['https://picsum.photos/id/787/600/450'];
     return {
       id: 'preview',
-      title: `${form.brand || '品牌'} ${form.model || '机型'}`.trim() || '车源预览',
+      title: `${form.brand || '品牌'} ${form.model || '机型'} ${form.categoryLabel}`.trim() || '车源预览',
       category: form.category,
       categoryLabel: form.categoryLabel,
       brand: form.brand || '品牌待填',
@@ -109,20 +140,20 @@ const PublishPage: React.FC = () => {
       city: form.city || '城市待填',
       site: form.site || '工地待填',
       minPrice: Number(form.minPrice) || 0,
-      condition: 'good',
-      cover: 'https://picsum.photos/id/787/600/450',
-      images: ['https://picsum.photos/id/787/600/450'],
-      videos: [],
+      condition: cond.level,
+      cover,
+      images: imageList,
+      videos: videoList,
       sellPoint: { ...sellPoint, highlights },
-      canViewToday: true,
-      includeTransport: false,
+      canViewToday: form.canViewToday,
+      includeTransport: form.includeTransport,
       sellerId: 'me',
-      sellerName: '我',
-      sellerAvatar: '',
+      sellerName: currentUser.name,
+      sellerAvatar: currentUser.avatar,
       publishedAt: new Date().toISOString(),
       collected: false,
     };
-  }, [form, checks]);
+  }, [form, checks, videos, currentUser]);
 
   const handlePublish = () => {
     if (!form.brand || !form.model || !form.hours || !form.minPrice) {
@@ -133,19 +164,42 @@ const PublishPage: React.FC = () => {
       Taro.showToast({ title: '请至少上传1个验机视频', icon: 'none' });
       return;
     }
+    const id = `m_${Date.now()}`;
+    const newMachine: Machine = {
+      ...previewMachine,
+      id,
+      title: `${form.brand} ${form.model} ${form.categoryLabel}`,
+      publishedAt: new Date().toISOString(),
+    };
+    publishMachine(newMachine);
+    // 刷新降价提醒匹配状态
+    refreshPriceAlertMatches();
     Taro.showModal({
       title: '发布成功',
-      content: '车源已发布，卖点卡片已自动生成。买家可立即看到您的车源！',
+      content: `「${newMachine.title}」已发布，买家可在找车页搜到您的车源！`,
       showCancel: false,
-      confirmText: '我知道了',
+      confirmText: '查看我的车源',
       success: () => setTab('list'),
     });
+  };
+
+  const toggleCategory = (value: MachineCategory, label: string) => {
+    setForm((f) => ({ ...f, category: value, categoryLabel: label }));
+  };
+
+  const handleMachineClick = (id: string) => {
+    Taro.navigateTo({ url: `/pages/detail/index?id=${id}` });
   };
 
   const checkOptions: { key: string; label: string }[] = [
     { key: 'noOilLeak', label: '无漏油' },
     { key: 'noRepair', label: '无大修' },
     { key: 'paperComplete', label: '手续齐全' },
+  ];
+
+  const extraOptions: { key: keyof Pick<FormState, 'canViewToday' | 'includeTransport'>; label: string }[] = [
+    { key: 'canViewToday', label: '可当天看机' },
+    { key: 'includeTransport', label: '包板车运输' },
   ];
 
   return (
@@ -161,7 +215,7 @@ const PublishPage: React.FC = () => {
           className={classnames(styles.tabItem, tab === 'list' && styles.tabActive)}
           onClick={() => setTab('list')}
         >
-          <Text className={styles.tabText}>我的车源</Text>
+          <Text className={styles.tabText}>我的车源({myMachines.length})</Text>
         </View>
       </View>
 
@@ -177,7 +231,7 @@ const PublishPage: React.FC = () => {
                 {CATEGORY_OPTIONS.map((c) => (
                   <View
                     key={c.value}
-                    onClick={() => setForm((f) => ({ ...f, category: c.value, categoryLabel: c.label }))}
+                    onClick={() => toggleCategory(c.value, c.label)}
                     style={{
                       padding: '4rpx 16rpx',
                       borderRadius: '999rpx',
@@ -272,7 +326,9 @@ const PublishPage: React.FC = () => {
             <Text className={styles.sectionTitle}>
               <Text className={styles.sectionIcon}>🎬</Text> 验机短视频
             </Text>
-            <Text style={{ fontSize: '24rpx', color: '#86909c' }}>上传发动机启动、行走、回转、臂架动作视频</Text>
+            <Text style={{ fontSize: '24rpx', color: '#86909c' }}>
+              已上传 {Object.keys(videos).length} / {VIDEO_TYPES.length} 段
+            </Text>
             <View className={styles.videoGrid}>
               {VIDEO_TYPES.map((v) => {
                 const has = !!videos[v.type];
@@ -312,6 +368,22 @@ const PublishPage: React.FC = () => {
             </View>
           </View>
 
+          <View className={styles.section}>
+            <Text className={styles.sectionTitle}>
+              <Text className={styles.sectionIcon}>⚙️</Text> 其他设置
+            </Text>
+            <View className={styles.checkRow}>
+              {extraOptions.map((o) => (
+                <View key={o.key} className={styles.checkItem} onClick={() => updateForm(o.key, !form[o.key])}>
+                  <View className={classnames(styles.checkBox, form[o.key] && styles.checkActive)}>
+                    <Text>{form[o.key] ? '✓' : ''}</Text>
+                  </View>
+                  <Text className={styles.checkText}>{o.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
           <SectionHeader title="卖点卡片预览" subtitle="自动生成" />
           <SellPointCard machine={previewMachine} />
 
@@ -319,12 +391,12 @@ const PublishPage: React.FC = () => {
         </View>
       ) : (
         <View className={styles.myList}>
-          <SectionHeader title="我的车源" subtitle={`${mockMyMachines.length}台`} />
-          {mockMyMachines.length === 0 ? (
+          <SectionHeader title="我的车源" subtitle={`${myMachines.length}台`} />
+          {myMachines.length === 0 ? (
             <EmptyState text="还没有发过的车源" hint="点击上方发布新车源" />
           ) : (
-            mockMyMachines.map((m) => (
-              <View key={m.id} className={styles.myItem}>
+            myMachines.map((m) => (
+              <View key={m.id} className={styles.myItem} onClick={() => handleMachineClick(m.id)}>
                 <Image className={styles.myCover} src={m.cover} mode="aspectFill" />
                 <View className={styles.myBody}>
                   <Text className={styles.myTitle}>{m.title}</Text>
@@ -333,17 +405,17 @@ const PublishPage: React.FC = () => {
                       style={{
                         padding: '2rpx 12rpx',
                         borderRadius: '4rpx',
-                        background: m.status === '在售' ? '#fff3e8' : '#f2f3f5',
-                        color: m.status === '在售' ? '#ff6b00' : '#86909c',
+                        background: '#fff3e8',
+                        color: '#ff6b00',
                         fontSize: '22rpx',
                       }}
                     >
-                      {m.status}
+                      在售
                     </View>
-                    <Text className={styles.myViews}>浏览 {m.views}</Text>
+                    <Text className={styles.myViews}>视频 {m.videos.length}</Text>
                   </View>
                   <View className={styles.myStatusRow}>
-                    <Text className={styles.myPrice}>¥{m.price}万</Text>
+                    <Text className={styles.myPrice}>¥{m.minPrice}万</Text>
                   </View>
                 </View>
               </View>

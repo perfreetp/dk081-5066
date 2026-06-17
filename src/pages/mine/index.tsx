@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useAppStore } from '@/store/useAppStore';
-import { mockAgreements, mockHandovers, mockBookings, mockFailRecords } from '@/data/mine';
+import { mockHandovers, mockFailRecords } from '@/data/mine';
 import MachineCard from '@/components/MachineCard';
 import SectionHeader from '@/components/SectionHeader';
 import EmptyState from '@/components/EmptyState';
@@ -13,6 +13,8 @@ const MinePage: React.FC = () => {
   const collectedIds = useAppStore((s) => s.collectedIds);
   const toggleCollect = useAppStore((s) => s.toggleCollect);
   const priceAlerts = useAppStore((s) => s.priceAlerts);
+  const bookings = useAppStore((s) => s.bookings);
+  const agreements = useAppStore((s) => s.agreements);
 
   const collectedMachines = useMemo(
     () => machines.filter((m) => collectedIds.includes(m.id)),
@@ -37,8 +39,8 @@ const MinePage: React.FC = () => {
 
   const gridItems = [
     { icon: '🚜', label: '我的发车', path: '/pages/publish/index?tab=list', badge: 0 },
-    { icon: '📅', label: '预约看机', path: '/pages/booking/index', badge: mockBookings.length },
-    { icon: '📑', label: '定金协议', path: '/pages/agreement/index', badge: mockAgreements.length },
+    { icon: '📅', label: '预约看机', path: '/pages/booking/index', badge: bookings.length },
+    { icon: '📑', label: '定金协议', path: '/pages/agreement/index', badge: agreements.length },
     { icon: '✅', label: '交机清单', path: '/pages/handover/index', badge: mockHandovers.length },
     { icon: '❌', label: '成交失败', path: '/pages/agreement/index?tab=fail', badge: mockFailRecords.length },
     { icon: '🔔', label: '降价提醒', path: '/pages/agreement/index?tab=alert', badge: priceAlerts.filter((p) => p.matched).length },
@@ -64,11 +66,11 @@ const MinePage: React.FC = () => {
             <Text className={styles.statLabel}>收藏车源</Text>
           </View>
           <View className={styles.statItem}>
-            <Text className={styles.statNum}>{mockBookings.length}</Text>
+            <Text className={styles.statNum}>{bookings.length}</Text>
             <Text className={styles.statLabel}>预约看机</Text>
           </View>
           <View className={styles.statItem}>
-            <Text className={styles.statNum}>{mockAgreements.length}</Text>
+            <Text className={styles.statNum}>{agreements.length}</Text>
             <Text className={styles.statLabel}>定金协议</Text>
           </View>
           <View className={styles.statItem}>

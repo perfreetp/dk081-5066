@@ -146,3 +146,206 @@
   vertical-align: top;
   white-space: normal;
 }
+
+// 降价提醒入口
+.alertEntry {
+  display: flex;
+  align-items: center;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-md;
+  margin: $spacing-sm $page-padding 0;
+  box-shadow: $shadow-card;
+}
+
+.alertIcon {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: $radius-sm;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 24rpx;
+}
+
+.alertBody {
+  margin-left: $spacing-sm;
+  flex: 1;
+  min-width: 0;
+}
+
+.alertTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.alertSub {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 2rpx;
+}
+
+.alertCount {
+  padding: $spacing-xs $spacing-sm;
+  background: rgba(255, 107, 0, 0.08);
+  border-radius: $radius-round;
+}
+
+.alertCountText {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.alertArrow {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  margin-left: $spacing-xs;
+}
+
+// 底部弹层
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+}
+
+.sheet {
+  width: 100%;
+  background: $color-bg-card;
+  border-radius: $radius-xl $radius-xl 0 0;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $page-padding;
+  border-bottom: 1rpx solid $color-border;
+}
+
+.sheetTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.sheetClose {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  padding: $spacing-xs;
+}
+
+.sheetBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-md $page-padding;
+}
+
+.formSection {
+  margin-bottom: $spacing-md;
+}
+
+.formLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.formRow {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md 0;
+  border-bottom: 1rpx solid $color-border-light;
+}
+
+.formRow .formLabel {
+  margin-bottom: 0;
+  width: 200rpx;
+  flex-shrink: 0;
+}
+
+.formInput {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  text-align: right;
+}
+
+.formHint {
+  margin-top: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  background: rgba(255, 107, 0, 0.06);
+  border-radius: $radius-md;
+}
+
+.formHintText {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.tagItem {
+  padding: $spacing-xs $spacing-sm;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  border: 2rpx solid transparent;
+}
+
+.tagActive {
+  background: rgba(255, 107, 0, 0.08);
+  border-color: $color-primary;
+}
+
+.tagText {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.tagActive .tagText {
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.sheetFooter {
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  border-top: 1rpx solid $color-border;
+}
+
+.submitBtn {
+  width: 100%;
+  height: 88rpx;
+  background: $color-primary;
+  border-radius: $radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submitBtnText {
+  font-size: $font-size-md;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+}

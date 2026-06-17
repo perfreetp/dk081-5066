@@ -4,8 +4,8 @@ import Taro, { useRouter } from '@tarojs/taro';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
 import { useAppStore } from '@/store/useAppStore';
-import { mockBookings } from '@/data/mine';
 import { formatPrice } from '@/utils/format';
+import type { Booking } from '@/types';
 import SectionHeader from '@/components/SectionHeader';
 import EmptyState from '@/components/EmptyState';
 import styles from './index.module.scss';
@@ -23,6 +23,9 @@ const BookingPage: React.FC = () => {
   const router = useRouter();
   const machineId = router.params.id || '';
   const machine = useAppStore((s) => (machineId ? s.getMachineById(machineId) : undefined));
+  const bookings = useAppStore((s) => s.bookings);
+  const addBooking = useAppStore((s) => s.addBooking);
+  const currentUser = useAppStore((s) => s.currentUser);
 
   const dateOptions = useMemo(() => {
     const arr: { weekday: string; day: string; label: string; value: string }[] = [];
@@ -41,20 +44,44 @@ const BookingPage: React.FC = () => {
 
   const [selectedDate, setSelectedDate] = useState(dateOptions[0].value);
   const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0]);
-  const [buyerName, setBuyerName] = useState('我');
-  const [buyerPhone, setBuyerPhone] = useState('139-9000-5678');
+  const [buyerName, setBuyerName] = useState(currentUser.name);
+  const [buyerPhone, setBuyerPhone] = useState(currentUser.phone);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = () => {
     if (!buyerName || !buyerPhone) {
       Taro.showToast({ title: '请补全联系人信息', icon: 'none' });
       return;
     }
+    if (!machine) {
+      Taro.showToast({ title: '车源信息缺失', icon: 'none' });
+      return;
+    }
+    const newBooking: Booking = {
+      id: `bk_${Date.now()}`,
+      machineId: machine.id,
+      machineTitle: machine.title,
+      machineCover: machine.cover,
+      sellerName: machine.sellerName,
+      sellerPhone: '138-8000-1234',
+      site: machine.site,
+      city: machine.city,
+      viewDate: selectedDate,
+      viewTimeSlot: selectedSlot,
+      buyerName,
+      buyerPhone,
+      status: 'pending',
+    };
+    addBooking(newBooking);
+    setSubmitted(true);
     Taro.showModal({
       title: '预约成功',
-      content: `已预约 ${selectedDate} ${selectedSlot} 看机，卖家将收到通知并确认可看时间。`,
+      content: `已预约 ${selectedDate} ${selectedSlot} 看机，卖家将收到通知并确认可看时间。可在"我的-预约看机"中查看。`,
       showCancel: false,
-      confirmText: '好的',
-      success: () => Taro.navigateBack(),
+      confirmText: '查看预约',
+      success: () => {
+        // 滚动到列表区域即可，不跳走
+      },
     });
   };
 
@@ -97,7 +124,7 @@ const BookingPage: React.FC = () => {
           </View>
         )}
 
-        {machine && (
+        {machine && !submitted && (
           <>
             <View className={styles.section}>
               <Text className={styles.sectionTitle}>
@@ -162,11 +189,11 @@ const BookingPage: React.FC = () => {
           </>
         )}
 
-        <SectionHeader title="我的预约看机记录" subtitle={`${mockBookings.length}条`} />
-        {mockBookings.length === 0 ? (
+        <SectionHeader title="我的预约看机记录" subtitle={`${bookings.length}条`} />
+        {bookings.length === 0 ? (
           <EmptyState text="还没有预约记录" />
         ) : (
-          mockBookings.map((b) => {
+          bookings.map((b) => {
             const st = statusMap[b.status] || statusMap.pending;
             return (
               <View key={b.id} className={styles.bookingItem} onClick={() => handleBookingClick(b.id)}>
@@ -185,7 +212,7 @@ const BookingPage: React.FC = () => {
         )}
       </View>
 
-      {machine && (
+      {machine && !submitted && (
         <View className={styles.footer}>
           <View className={styles.submitBtn} onClick={handleSubmit}>
             <Text className={styles.submitBtnText}>确认预约看机</Text>
