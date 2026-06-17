@@ -6,6 +6,7 @@ import { mockFailRecords, FAIL_REASON_OPTIONS } from '@/data/mine';
 import { useAppStore } from '@/store/useAppStore';
 import { formatPrice, formatRelativeTime, formatDate } from '@/utils/format';
 import EmptyState from '@/components/EmptyState';
+import type { PriceAlert } from '@/types';
 import styles from './index.module.scss';
 
 type Tab = 'agreement' | 'fail' | 'alert';
@@ -39,6 +40,14 @@ const AgreementPage: React.FC = () => {
   const updateAgreementPayment = useAppStore((s) => s.updateAgreementPayment);
   const startHandover = useAppStore((s) => s.startHandover);
   const completeAgreement = useAppStore((s) => s.completeAgreement);
+  const getMatchedMachines = useAppStore((s) => s.getMatchedMachines);
+
+  // 命中车源弹层
+  const [detailAlert, setDetailAlert] = useState<PriceAlert | null>(null);
+  const matchedMachines = useMemo(() => {
+    if (!detailAlert) return [];
+    return getMatchedMachines(detailAlert.categoryLabel, detailAlert.modelKeyword);
+  }, [detailAlert, getMatchedMachines]);
 
   const failStats = useMemo(() => {
     const map: Record<string, number> = { price_gap: 0, condition_mismatch: 0, paper_issue: 0 };
@@ -108,10 +117,33 @@ const AgreementPage: React.FC = () => {
       success: (res) => {
         if (res.confirm) {
           removePriceAlert(id);
+          setDetailAlert(null);
           Taro.showToast({ title: '已取消关注', icon: 'success' });
         }
       },
     });
+  };
+
+  // 查看命中车源
+  const handleViewAlert = (p: PriceAlert) => {
+    setDetailAlert(p);
+  };
+
+  // 联系卖家
+  const handleContactSeller = (sellerName: string) => {
+    Taro.showToast({ title: `已发起与「${sellerName}」的会话`, icon: 'success' });
+  };
+
+  // 预约看机
+  const handleBookMachine = (machineId: string) => {
+    setDetailAlert(null);
+    Taro.navigateTo({ url: `/pages/booking/index?machineId=${machineId}` });
+  };
+
+  // 查看车源详情
+  const handleViewMachine = (machineId: string) => {
+    setDetailAlert(null);
+    Taro.navigateTo({ url: `/pages/detail/index?id=${machineId}` });
   };
 
   const handleFailDetail = (id: string) => {
@@ -305,14 +337,19 @@ const AgreementPage: React.FC = () => {
               <EmptyState text="还没有关注机型" hint="找车页或车源详情页可关注降价提醒" />
             ) : (
               priceAlerts.map((p) => {
-                const gap = p.currentMinPrice - p.targetPrice;
-                const gapText = p.currentMinPrice > 0
+                const hasMatch = p.currentMinPrice > 0;
+                const gap = hasMatch ? p.currentMinPrice - p.targetPrice : 0;
+                const gapText = hasMatch
                   ? (p.matched
                     ? `已比目标价低 ¥${Math.abs(gap).toFixed(1)}万`
                     : `还差 ¥${gap.toFixed(1)}万`)
                   : '暂无匹配车源';
                 return (
-                  <View key={p.id} className={classnames(styles.alertItem, p.matched && styles.alertItemMatched)}>
+                  <View
+                    key={p.id}
+                    className={classnames(styles.alertItem, p.matched && styles.alertItemMatched)}
+                    onClick={() => handleViewAlert(p)}
+                  >
                     <View className={classnames(styles.alertIcon, p.matched && styles.alertIconMatched)}>
                       <Text>{p.matched ? '📣' : '🔔'}</Text>
                     </View>
@@ -335,7 +372,7 @@ const AgreementPage: React.FC = () => {
                             styles.alertCurrentPrice,
                             p.matched && styles.alertCurrentPriceMatched
                           )}>
-                            {p.currentMinPrice > 0 ? `${p.currentMinPrice}万` : '--'}
+                            {hasMatch ? `${p.currentMinPrice}万` : '暂无'}
                           </Text>
                         </View>
                       </View>
@@ -345,11 +382,16 @@ const AgreementPage: React.FC = () => {
                     </View>
                     <View className={styles.alertRight}>
                       {p.matched ? (
-                        <Text className={styles.alertMatched}>已降价 ✓</Text>
-                      ) : (
+                        <Text className={styles.alertMatched}>已达成 ✓</Text>
+                      ) : hasMatch ? (
                         <Text className={styles.alertWaiting}>等待中</Text>
+                      ) : (
+                        <Text className={styles.alertWaiting}>暂无车源</Text>
                       )}
-                      <View className={styles.alertRemove} onClick={() => handleRemoveAlert(p.id)}>
+                      <View
+                        className={styles.alertRemove}
+                        onClick={(e) => { e.stopPropagation(); handleRemoveAlert(p.id); }}
+                      >
                         <Text>取消</Text>
                       </View>
                     </View>
@@ -360,6 +402,100 @@ const AgreementPage: React.FC = () => {
           </>
         )}
       </View>
+
+      {/* 命中车源弹层 */}
+      {detailAlert && (
+        <View className={styles.mask} onClick={() => setDetailAlert(null)}>
+          <View className={styles.alertSheet} onClick={(e) => e.stopPropagation()}>
+            <View className={styles.sheetHeader}>
+              <Text className={styles.sheetTitle}>命中车源 · {detailAlert.categoryLabel}{detailAlert.modelKeyword ? ` · ${detailAlert.modelKeyword}` : ''}</Text>
+              <Text className={styles.sheetClose} onClick={() => setDetailAlert(null)}>✕</Text>
+            </View>
+
+            <View className={styles.alertSummary}>
+              <View className={styles.alertSummaryBlock}>
+                <Text className={styles.alertSummaryLabel}>目标价</Text>
+                <Text className={styles.alertSummaryVal}>≤ {detailAlert.targetPrice}万</Text>
+              </View>
+              <View className={styles.alertSummaryBlock}>
+                <Text className={styles.alertSummaryLabel}>当前最低</Text>
+                <Text className={classnames(
+                  styles.alertSummaryVal,
+                  detailAlert.matched && styles.alertSummaryValMatched
+                )}>
+                  {detailAlert.currentMinPrice > 0 ? `${detailAlert.currentMinPrice}万` : '暂无'}
+                </Text>
+              </View>
+              <View className={styles.alertSummaryBlock}>
+                <Text className={styles.alertSummaryLabel}>状态</Text>
+                <Text className={classnames(
+                  styles.alertSummaryVal,
+                  detailAlert.matched ? styles.alertSummaryValMatched : styles.alertSummaryValWarn
+                )}>
+                  {detailAlert.matched ? '已达成' : (detailAlert.currentMinPrice > 0 ? '未达成' : '暂无车源')}
+                </Text>
+              </View>
+            </View>
+
+            <Text className={styles.alertMatchCount}>
+              共命中 {matchedMachines.length} 台车源{matchedMachines.length > 0 ? '，可直接联系或预约' : ''}
+            </Text>
+
+            {matchedMachines.length === 0 ? (
+              <EmptyState text="暂无匹配车源" hint="可关注其他机型或调整目标价" />
+            ) : (
+              <View className={styles.matchList}>
+                {matchedMachines.map((m) => (
+                  <View key={m.id} className={styles.matchItem}>
+                    <Image className={styles.matchCover} src={m.cover} mode="aspectFill" />
+                    <View className={styles.matchBody}>
+                      <Text className={styles.matchTitle} numberOfLines={1}>{m.title}</Text>
+                      <Text className={styles.matchMeta}>📍 {m.site || m.city} · 📹 {m.videos.length}段</Text>
+                      <View className={styles.matchPriceRow}>
+                        <Text className={styles.matchPrice}>¥{formatPrice(m.minPrice)}万</Text>
+                        {m.minPrice <= detailAlert.targetPrice && (
+                          <Text className={styles.matchHit}>✓ 达成目标价</Text>
+                        )}
+                      </View>
+                      <Text className={styles.matchSeller}>卖家：{m.sellerName}</Text>
+                    </View>
+                    <View className={styles.matchActions}>
+                      <View
+                        className={styles.matchGhostBtn}
+                        onClick={() => handleViewMachine(m.id)}
+                      >
+                        <Text>详情</Text>
+                      </View>
+                      <View
+                        className={styles.matchGhostBtn}
+                        onClick={() => handleContactSeller(m.sellerName)}
+                      >
+                        <Text>联系</Text>
+                      </View>
+                      <View
+                        className={styles.matchPrimaryBtn}
+                        onClick={() => handleBookMachine(m.id)}
+                      >
+                        <Text>预约</Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <View className={styles.alertSheetFooter}>
+              <View className={styles.alertSheetCancel} onClick={() => setDetailAlert(null)}>关闭</View>
+              <View
+                className={classnames(styles.alertSheetRemove, detailAlert.matched && styles.alertSheetRemoveWarn)}
+                onClick={() => handleRemoveAlert(detailAlert.id)}
+              >
+                <Text>{detailAlert.matched ? '已达成，取消关注' : '取消此提醒'}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 };

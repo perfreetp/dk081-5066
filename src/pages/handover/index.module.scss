@@ -280,3 +280,70 @@
   color: $color-text-white;
   font-weight: $font-weight-semibold;
 }
+
+// 关联定金卡片
+.depositCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.depositRow {
+  display: flex;
+  align-items: stretch;
+}
+
+.depositBlock {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.depositLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.depositNum {
+  font-size: $font-size-md;
+  color: $color-price;
+  font-weight: $font-weight-bold;
+}
+
+.depositRole {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.handoverStatus {
+  margin-top: $spacing-sm;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  text-align: center;
+}
+
+.statusDone {
+  background: $color-tag-bg-green;
+  color: $color-success;
+}
+
+.statusFailed {
+  background: rgba(245, 63, 63, 0.1);
+  color: $color-error;
+}
+
+// 只读模式
+.checkItemReadOnly {
+  opacity: 0.7;
+}

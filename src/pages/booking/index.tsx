@@ -21,7 +21,7 @@ const statusMap: Record<string, { text: string; bg: string; color: string }> = {
 
 const BookingPage: React.FC = () => {
   const router = useRouter();
-  const machineId = router.params.id || '';
+  const machineId = router.params.id || router.params.machineId || '';
   const bookingId = router.params.bookingId || '';
   const machine = useAppStore((s) => (machineId ? s.getMachineById(machineId) : undefined));
   const bookings = useAppStore((s) => s.bookings);

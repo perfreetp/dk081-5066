@@ -79,7 +79,7 @@ const FindPage: React.FC = () => {
     const catLabel = categoryKeyToLabel[catKey] || '挖掘机';
     setAlertCategoryLabel(catLabel);
     setModelKeyword('');
-    const catMachines = machines.filter((m) => m.categoryLabel === catLabel);
+    const catMachines = machines.filter((m) => m.status === 'online' && m.categoryLabel === catLabel);
     const minPrice = catMachines.length > 0
       ? Math.min(...catMachines.map((m) => m.minPrice))
       : 20;
@@ -103,7 +103,7 @@ const FindPage: React.FC = () => {
   };
 
   const getCategoryMinPrice = (label: string) => {
-    const catMachines = machines.filter((m) => m.categoryLabel === label);
+    const catMachines = machines.filter((m) => m.status === 'online' && m.categoryLabel === label);
     return catMachines.length > 0 ? Math.min(...catMachines.map((m) => m.minPrice)) : 0;
   };
 

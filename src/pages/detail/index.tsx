@@ -33,18 +33,15 @@ const DetailPage: React.FC = () => {
     return priceAlerts.filter((a) => a.categoryLabel === machine.categoryLabel).length;
   }, [priceAlerts, machine]);
 
-  // 是否已关注当前具体型号（精确匹配category+model关键词）
+  // 是否已关注当前具体型号（精确匹配category+model关键词，支持空格分词）
   const sameModelAlertId = useMemo(() => {
     if (!machine) return null;
-    const model = machine.model.toLowerCase();
-    const hit = priceAlerts.find(
-      (a) =>
-        a.categoryLabel === machine.categoryLabel &&
-        a.modelKeyword &&
-        (model.includes(a.modelKeyword.toLowerCase()) ||
-          a.modelKeyword.toLowerCase().includes(model) ||
-          machine.title.toLowerCase().includes(a.modelKeyword.toLowerCase()))
-    );
+    const haystack = `${machine.model} ${machine.title} ${machine.brand}`.toLowerCase();
+    const hit = priceAlerts.find((a) => {
+      if (a.categoryLabel !== machine.categoryLabel || !a.modelKeyword) return false;
+      const keywords = a.modelKeyword.toLowerCase().split(/\s+/).filter(Boolean);
+      return keywords.length > 0 && keywords.every((kw) => haystack.includes(kw));
+    });
     return hit ? hit.id : null;
   }, [priceAlerts, machine]);
 

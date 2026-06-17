@@ -104,6 +104,50 @@
   font-size: $font-size-sm;
 }
 
+// 工地位置
+.siteRow {
+  display: flex;
+  align-items: center;
+  margin-top: $spacing-xs;
+}
+
+.siteIcon {
+  font-size: $font-size-xs;
+  margin-right: 4rpx;
+  flex-shrink: 0;
+}
+
+.siteText {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+// 卖点摘要
+.highlightRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-top: $spacing-xs;
+}
+
+.highlightChip {
+  padding: 2rpx $spacing-xs;
+  border-radius: $radius-xs;
+  background: linear-gradient(135deg, #fff7e8 0%, #fff3e8 100%);
+  border: 1rpx solid rgba(255, 107, 0, 0.15);
+}
+
+.highlightText {
+  font-size: 20rpx;
+  color: #8a4a00;
+  white-space: nowrap;
+}
+
 .bottomRow {
   display: flex;
   align-items: flex-end;

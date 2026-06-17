@@ -62,6 +62,26 @@ export interface Machine {
   publishedAt: string; // 发布时间
   collected: boolean; // 是否已收藏
   status: 'online' | 'offline' | 'sold'; // 上架 / 下架 / 已售
+  stats: MachineStats; // 运营数据
+}
+
+// 车源运营数据
+export interface MachineStats {
+  views: number; // 浏览数
+  collects: number; // 收藏数
+  consults: number; // 咨询数
+  bookings: number; // 预约数
+}
+
+// 车源操作记录
+export type MachineOpType = 'publish' | 'price' | 'refresh' | 'offline' | 'online' | 'sold';
+export interface MachineOpLog {
+  id: string;
+  machineId: string;
+  type: MachineOpType;
+  label: string; // 摘要文案
+  createdAt: string;
+  detail?: string; // 详情（如改价差额、刷新时间）
 }
 
 // 急找设备广播
@@ -155,12 +175,19 @@ export interface HandoverItem {
 // 交机清单
 export interface Handover {
   id: string;
+  agreementId: string; // 关联的定金协议
+  machineId: string;
   machineTitle: string;
   machineCover: string;
   sellerName: string;
+  sellerPhone: string;
   buyerName: string;
+  buyerPhone: string;
+  dealPrice: number; // 成交价（万元）
+  deposit: number; // 定金（元）
   handoverAt: string;
   items: HandoverItem[];
+  status: 'pending' | 'done' | 'failed'; // 待交机 / 已完成 / 已失败
 }
 
 // 成交失败记录
@@ -180,6 +207,6 @@ export interface PriceAlert {
   categoryLabel: string;
   modelKeyword: string;
   targetPrice: number;
-  currentMinPrice: number;
-  matched: boolean;
+  currentMinPrice: number; // 0 表示当前没有匹配车源
+  matched: boolean; // 是否已达成目标价（含真实对比）
 }

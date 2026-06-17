@@ -59,8 +59,25 @@ const MachineCard: React.FC<MachineCardProps> = ({ machine, onClick, onCollect, 
           <Text className={styles.metaDot}>·</Text>
           <Text className={styles.meta}>{formatHours(machine.hours)}</Text>
           <Text className={styles.metaDot}>·</Text>
-          <Text className={styles.meta}>{machine.city}</Text>
+          <Text className={styles.meta}>📹 {machine.videos.length}</Text>
         </View>
+
+        <View className={styles.siteRow}>
+          <Text className={styles.siteIcon}>📍</Text>
+          <Text className={styles.siteText} numberOfLines={1}>
+            {machine.site ? `${machine.site} · ${machine.city}` : machine.city}
+          </Text>
+        </View>
+
+        {machine.sellPoint.highlights && machine.sellPoint.highlights.length > 0 && (
+          <View className={styles.highlightRow}>
+            {machine.sellPoint.highlights.slice(0, 2).map((h, i) => (
+              <View key={i} className={styles.highlightChip}>
+                <Text className={styles.highlightText}>{h}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         <View className={styles.bottomRow}>
           <View className={styles.priceWrap}>

@@ -56,11 +56,14 @@ const PublishPage: React.FC = () => {
   const updateMachinePrice = useAppStore((s) => s.updateMachinePrice);
   const toggleMachineStatus = useAppStore((s) => s.toggleMachineStatus);
   const refreshAvailable = useAppStore((s) => s.refreshAvailable);
+  const machineOpLogs = useAppStore((s) => s.machineOpLogs);
 
   const myMachines = useMemo(
     () => machines.filter((m) => myMachineIds.includes(m.id)),
     [machines, myMachineIds]
   );
+
+  const [expandedLogMachineId, setExpandedLogMachineId] = useState<string | null>(null);
 
   const [form, setForm] = useState<FormState>({
     category: 'excavator',
@@ -173,6 +176,7 @@ const PublishPage: React.FC = () => {
       publishedAt: new Date().toISOString(),
       collected: false,
       status: 'online' as const,
+      stats: { views: 0, collects: 0, consults: 0, bookings: 0 },
     };
   }, [form, checks, videos, currentUser]);
 
@@ -474,6 +478,9 @@ const PublishPage: React.FC = () => {
             myMachines.map((m) => {
               const st = STATUS_LABEL[m.status];
               const priceDropped = m.originalPrice && m.minPrice < m.originalPrice;
+              const logs = machineOpLogs.filter((l) => l.machineId === m.id);
+              const logExpanded = expandedLogMachineId === m.id;
+              const recentLog = logs[0];
               return (
                 <View key={m.id} className={styles.myItem}>
                   <View className={styles.myItemHeader} onClick={() => handleMachineClick(m.id)}>
@@ -505,10 +512,59 @@ const PublishPage: React.FC = () => {
                     </View>
                   </View>
 
+                  {/* 运营数据 */}
+                  <View className={styles.statsRow}>
+                    <View className={styles.statsItem}>
+                      <Text className={styles.statsNum}>{m.stats.views}</Text>
+                      <Text className={styles.statsLabel}>👁 浏览</Text>
+                    </View>
+                    <View className={styles.statsItem}>
+                      <Text className={styles.statsNum}>{m.stats.collects}</Text>
+                      <Text className={styles.statsLabel}>⭐ 收藏</Text>
+                    </View>
+                    <View className={styles.statsItem}>
+                      <Text className={styles.statsNum}>{m.stats.consults}</Text>
+                      <Text className={styles.statsLabel}>💬 咨询</Text>
+                    </View>
+                    <View className={styles.statsItem}>
+                      <Text className={styles.statsNum}>{m.stats.bookings}</Text>
+                      <Text className={styles.statsLabel}>📅 预约</Text>
+                    </View>
+                  </View>
+
                   {m.sellPoint.highlights && m.sellPoint.highlights.length > 0 && (
                     <View className={styles.myHighlights}>
                       {m.sellPoint.highlights.slice(0, 3).map((h, i) => (
                         <Text key={i} className={styles.myHighlight}>· {h}</Text>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* 最近操作记录 */}
+                  <View
+                    className={classnames(styles.opLogBar, logs.length === 0 && styles.opLogEmpty)}
+                    onClick={() => logs.length > 0 && setExpandedLogMachineId(logExpanded ? null : m.id)}
+                  >
+                    {recentLog ? (
+                      <>
+                        <Text className={styles.opLogRecent}>🕐 最近：{recentLog.label}{recentLog.detail ? ` · ${recentLog.detail}` : ''}</Text>
+                        <Text className={styles.opLogToggle}>{logExpanded ? '收起 ▲' : '展开 ▼'}</Text>
+                      </>
+                    ) : (
+                      <Text className={styles.opLogRecent}>暂无操作记录</Text>
+                    )}
+                  </View>
+                  {logExpanded && logs.length > 0 && (
+                    <View className={styles.opLogList}>
+                      {logs.slice(0, 6).map((log) => (
+                        <View key={log.id} className={styles.opLogItem}>
+                          <Text className={styles.opLogDot}>·</Text>
+                          <View className={styles.opLogContent}>
+                            <Text className={styles.opLogLabel}>{log.label}</Text>
+                            {log.detail && <Text className={styles.opLogDetail}>{log.detail}</Text>}
+                            <Text className={styles.opLogTime}>{log.createdAt}</Text>
+                          </View>
+                        </View>
                       ))}
                     </View>
                   )}

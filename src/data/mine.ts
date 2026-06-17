@@ -79,11 +79,18 @@ export const mockAgreements: DepositAgreement[] = [
 export const mockHandovers: Handover[] = [
   {
     id: 'h001',
+    agreementId: 'a002',
+    machineId: 'm007',
     machineTitle: '临工L956F 装载机',
     machineCover: 'https://picsum.photos/id/1082/200/200',
     sellerName: '我',
+    sellerPhone: '139-9000-5678',
     buyerName: '陈老板',
+    buyerPhone: '135-5000-3333',
+    dealPrice: 23.5,
+    deposit: 10000,
     handoverAt: '2026-06-15 10:00:00',
+    status: 'done',
     items: [
       { label: '机器实体验收（与视频一致）', checked: true },
       { label: '发动机/变速箱运转正常', checked: true },
@@ -91,8 +98,8 @@ export const mockHandovers: Handover[] = [
       { label: '随车工具齐全', checked: true },
       { label: '购车发票原件', checked: true },
       { label: '合格证原件', checked: true },
-      { label: '登记证书（大绿本）', checked: false },
-      { label: '尾款结清凭证', checked: false },
+      { label: '登记证书（大绿本）', checked: true },
+      { label: '尾款结清凭证', checked: true },
     ],
   },
 ];

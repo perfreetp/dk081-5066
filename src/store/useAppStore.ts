@@ -1,9 +1,23 @@
 import { create } from 'zustand';
 import dayjs from 'dayjs';
-import type { Machine, PriceAlert, Booking, Broadcast, DepositAgreement } from '@/types';
+import type { Machine, PriceAlert, Booking, Broadcast, DepositAgreement, Handover, HandoverItem, MachineOpLog, MachineStats } from '@/types';
 import { mockMachines, CATEGORY_FILTERS } from '@/data/machines';
 import { mockBroadcasts } from '@/data/broadcasts';
-import { mockBookings, mockPriceAlerts, mockAgreements } from '@/data/mine';
+import { mockBookings, mockPriceAlerts, mockAgreements, mockHandovers } from '@/data/mine';
+
+// 默认检查项模板（从协议启动交机时使用）
+const DEFAULT_HANDOVER_ITEMS: HandoverItem[] = [
+  { label: '机器实体验收（与视频一致）', checked: false },
+  { label: '发动机/变速箱运转正常', checked: false },
+  { label: '液压系统无漏油', checked: false },
+  { label: '随车工具齐全', checked: false },
+  { label: '购车发票原件', checked: false },
+  { label: '合格证原件', checked: false },
+  { label: '登记证书（大绿本）', checked: false },
+  { label: '尾款结清凭证', checked: false },
+];
+
+const DEFAULT_STATS: MachineStats = { views: 0, collects: 0, consults: 0, bookings: 0 };
 
 interface AppState {
   // 当前用户
@@ -20,6 +34,9 @@ interface AppState {
   collectedIds: string[];
   myMachineIds: string[];
 
+  // 车源操作记录
+  machineOpLogs: MachineOpLog[];
+
   // 预约记录
   bookings: Booking[];
 
@@ -32,9 +49,14 @@ interface AppState {
   // 定金协议
   agreements: DepositAgreement[];
 
+  // 交机清单
+  handovers: Handover[];
+
   // Actions
   toggleCollect: (id: string) => void;
   getMachineById: (id: string) => Machine | undefined;
+  getMachineOpLogs: (machineId: string) => MachineOpLog[];
+  getHandoverByAgreement: (agreementId: string) => Handover | undefined;
 
   // 发布车源
   publishMachine: (machine: Machine) => void;
@@ -43,6 +65,7 @@ interface AppState {
   updateMachinePrice: (id: string, newPrice: number) => void;
   toggleMachineStatus: (id: string, status: Machine['status']) => void;
   refreshAvailable: (id: string, canViewToday: boolean, nextDate: string) => void;
+  incMachineStat: (id: string, key: keyof MachineStats) => void;
 
   // 预约看机
   addBooking: (booking: Booking) => void;
@@ -56,33 +79,50 @@ interface AppState {
   addPriceAlert: (alert: Omit<PriceAlert, 'id' | 'currentMinPrice' | 'matched'>) => void;
   removePriceAlert: (id: string) => void;
   refreshPriceAlertMatches: () => void;
+  getMatchedMachines: (categoryLabel: string, modelKeyword: string) => Machine[];
 
   // 定金协议
   addAgreement: (agreement: DepositAgreement) => void;
   updateAgreementPayment: (id: string, status: DepositAgreement['paymentStatus'], note?: string) => void;
   startHandover: (id: string) => string; // 返回 handoverId
   completeAgreement: (id: string) => void;
+  completeHandover: (agreementId: string) => void; // 完成交机并同步协议状态
+  markHandoverFailed: (agreementId: string, reasonLabel: string) => void;
 }
 
 // 计算某类机型的当前最低价
 const calcMinPriceFor = (machines: Machine[], categoryLabel: string, modelKeyword: string): number => {
-  const filtered = machines.filter((m) => {
+  const matched = matchMachinesFor(machines, categoryLabel, modelKeyword);
+  if (matched.length === 0) return 0;
+  return Math.min(...matched.map((m) => m.minPrice));
+};
+
+// 命中车源（按机型维度匹配，支持空格分词的 AND 匹配）
+const matchMachinesFor = (machines: Machine[], categoryLabel: string, modelKeyword: string): Machine[] => {
+  const keywords = modelKeyword
+    ? modelKeyword.toLowerCase().split(/\s+/).filter(Boolean)
+    : [];
+  return machines.filter((m) => {
     if (m.status !== 'online') return false;
     if (categoryLabel && m.categoryLabel !== categoryLabel) return false;
-    if (modelKeyword) {
-      const kw = modelKeyword.toLowerCase();
-      if (
-        !m.model.toLowerCase().includes(kw) &&
-        !m.title.toLowerCase().includes(kw) &&
-        !m.brand.toLowerCase().includes(kw)
-      ) {
-        return false;
-      }
+    if (keywords.length > 0) {
+      const haystack = `${m.model} ${m.title} ${m.brand}`.toLowerCase();
+      return keywords.every((kw) => haystack.includes(kw));
     }
     return true;
   });
-  if (filtered.length === 0) return 0;
-  return Math.min(...filtered.map((m) => m.minPrice));
+};
+
+const pushOpLog = (logs: MachineOpLog[], machineId: string, type: MachineOpLog['type'], label: string, detail?: string): MachineOpLog[] => {
+  const log: MachineOpLog = {
+    id: `op_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    machineId,
+    type,
+    label,
+    createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+    detail,
+  };
+  return [log, ...logs].slice(0, 50);
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -94,13 +134,20 @@ export const useAppStore = create<AppState>((set, get) => ({
     avatar: 'https://picsum.photos/id/64/200/200',
   },
 
-  machines: mockMachines.map((m) => ({ ...m, status: (m.status || 'online') as Machine['status'], originalPrice: m.originalPrice || m.minPrice })),
+  machines: mockMachines.map((m, idx) => ({
+    ...m,
+    status: (m.status || 'online') as Machine['status'],
+    originalPrice: m.originalPrice || m.minPrice,
+    stats: m.stats || { views: 30 + idx * 12, collects: 2 + (idx % 4), consults: 1 + (idx % 5), bookings: idx % 3 },
+  })),
   collectedIds: mockMachines.filter((m) => m.collected).map((m) => m.id),
   myMachineIds: [],
+  machineOpLogs: [],
   bookings: mockBookings,
   broadcasts: mockBroadcasts,
   priceAlerts: mockPriceAlerts,
   agreements: mockAgreements,
+  handovers: mockHandovers,
 
   toggleCollect: (id) => {
     set((state) => {
@@ -110,7 +157,13 @@ export const useAppStore = create<AppState>((set, get) => ({
           ? state.collectedIds.filter((cid) => cid !== id)
           : [...state.collectedIds, id],
         machines: state.machines.map((m) =>
-          m.id === id ? { ...m, collected: !has } : m
+          m.id === id
+            ? {
+                ...m,
+                collected: !has,
+                stats: { ...m.stats, collects: Math.max(0, m.stats.collects + (has ? -1 : 1)) },
+              }
+            : m
         ),
       };
     });
@@ -118,31 +171,47 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   getMachineById: (id) => get().machines.find((m) => m.id === id),
 
+  getMachineOpLogs: (machineId) => get().machineOpLogs.filter((l) => l.machineId === machineId),
+
+  getHandoverByAgreement: (agreementId) => get().handovers.find((h) => h.agreementId === agreementId),
+
   publishMachine: (machine) => {
     set((state) => ({
-      machines: [{ ...machine, status: 'online', originalPrice: machine.originalPrice || machine.minPrice }, ...state.machines],
+      machines: [{ ...machine, status: 'online', originalPrice: machine.originalPrice || machine.minPrice, stats: machine.stats || { ...DEFAULT_STATS } }, ...state.machines],
       myMachineIds: [machine.id, ...state.myMachineIds],
+      machineOpLogs: pushOpLog(state.machineOpLogs, machine.id, 'publish', '发布车源上线'),
     }));
-    // 发布后刷新降价提醒匹配
     get().refreshPriceAlertMatches();
   },
 
   // 车源管理
   updateMachinePrice: (id, newPrice) => {
-    set((state) => ({
-      machines: state.machines.map((m) =>
-        m.id === id ? { ...m, minPrice: newPrice } : m
-      ),
-    }));
+    set((state) => {
+      const m = state.machines.find((x) => x.id === id);
+      const oldPrice = m?.minPrice || 0;
+      const diff = +(newPrice - oldPrice).toFixed(1);
+      const detail = diff < 0 ? `由 ¥${oldPrice}万 → ¥${newPrice}万（降价 ¥${Math.abs(diff)}万）` : `由 ¥${oldPrice}万 → ¥${newPrice}万（涨价 ¥${diff}万）`;
+      return {
+        machines: state.machines.map((x) =>
+          x.id === id ? { ...x, minPrice: newPrice } : x
+        ),
+        machineOpLogs: pushOpLog(state.machineOpLogs, id, 'price', '改价', detail),
+      };
+    });
     get().refreshPriceAlertMatches();
   },
 
   toggleMachineStatus: (id, status) => {
-    set((state) => ({
-      machines: state.machines.map((m) =>
-        m.id === id ? { ...m, status } : m
-      ),
-    }));
+    set((state) => {
+      const labelMap: Record<Machine['status'], string> = { online: '上架', offline: '下架', sold: '标记已售' };
+      return {
+        machines: state.machines.map((m) =>
+          m.id === id ? { ...m, status } : m
+        ),
+        machineOpLogs: pushOpLog(state.machineOpLogs, id, status, labelMap[status]),
+      };
+    });
+    get().refreshPriceAlertMatches();
   },
 
   refreshAvailable: (id, canViewToday, nextDate) => {
@@ -150,12 +219,30 @@ export const useAppStore = create<AppState>((set, get) => ({
       machines: state.machines.map((m) =>
         m.id === id ? { ...m, canViewToday, nextAvailableDate: nextDate } : m
       ),
+      machineOpLogs: pushOpLog(
+        state.machineOpLogs,
+        id,
+        'refresh',
+        '刷新可看时间',
+        canViewToday ? `当天可看，时段 ${nextDate}` : `最近可看：${nextDate}`
+      ),
+    }));
+  },
+
+  incMachineStat: (id, key) => {
+    set((state) => ({
+      machines: state.machines.map((m) =>
+        m.id === id ? { ...m, stats: { ...m.stats, [key]: m.stats[key] + 1 } } : m
+      ),
     }));
   },
 
   addBooking: (booking) => {
     set((state) => ({
       bookings: [booking, ...state.bookings],
+      machines: state.machines.map((m) =>
+        m.id === booking.machineId ? { ...m, stats: { ...m.stats, bookings: m.stats.bookings + 1 } } : m
+      ),
     }));
   },
 
@@ -183,7 +270,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   addPriceAlert: (alert) => {
     const id = `pa_${Date.now()}`;
-    const currentMinPrice = calcMinPriceFor(get().machines, alert.categoryLabel, alert.modelKeyword || '');
+    const matchedMachines = matchMachinesFor(get().machines, alert.categoryLabel, alert.modelKeyword || '');
+    const currentMinPrice = matchedMachines.length > 0 ? Math.min(...matchedMachines.map((m) => m.minPrice)) : 0;
     const matched = currentMinPrice > 0 && currentMinPrice <= alert.targetPrice;
     const newAlert: PriceAlert = {
       ...alert,
@@ -205,15 +293,19 @@ export const useAppStore = create<AppState>((set, get) => ({
   refreshPriceAlertMatches: () => {
     const { machines, priceAlerts } = get();
     const updated = priceAlerts.map((a) => {
-      const minPrice = calcMinPriceFor(machines, a.categoryLabel, a.modelKeyword || '');
+      const matchedMachines = matchMachinesFor(machines, a.categoryLabel, a.modelKeyword || '');
+      const minPrice = matchedMachines.length > 0 ? Math.min(...matchedMachines.map((m) => m.minPrice)) : 0;
       return {
         ...a,
-        currentMinPrice: minPrice || a.currentMinPrice,
+        currentMinPrice: minPrice,
         matched: minPrice > 0 && minPrice <= a.targetPrice,
       };
     });
     set({ priceAlerts: updated });
   },
+
+  getMatchedMachines: (categoryLabel, modelKeyword) =>
+    matchMachinesFor(get().machines, categoryLabel, modelKeyword || ''),
 
   addAgreement: (agreement) => {
     set((state) => ({
@@ -230,11 +322,39 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   startHandover: (id) => {
+    const ag = get().agreements.find((a) => a.id === id);
+    if (!ag) return '';
+    const existing = get().handovers.find((h) => h.agreementId === id);
+    if (existing) {
+      set((state) => ({
+        agreements: state.agreements.map((a) =>
+          a.id === id ? { ...a, status: 'handover_start', handoverId: existing.id } : a
+        ),
+      }));
+      return existing.id;
+    }
     const handoverId = `hd_${Date.now()}`;
+    const newHandover: Handover = {
+      id: handoverId,
+      agreementId: id,
+      machineId: ag.machineId,
+      machineTitle: ag.machineTitle,
+      machineCover: ag.machineCover,
+      sellerName: ag.sellerName,
+      sellerPhone: ag.sellerPhone,
+      buyerName: ag.buyerName,
+      buyerPhone: ag.buyerPhone,
+      dealPrice: ag.dealPrice,
+      deposit: ag.deposit,
+      handoverAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      items: DEFAULT_HANDOVER_ITEMS.map((i) => ({ ...i })),
+      status: 'pending',
+    };
     set((state) => ({
       agreements: state.agreements.map((a) =>
         a.id === id ? { ...a, status: 'handover_start', handoverId } : a
       ),
+      handovers: [newHandover, ...state.handovers],
     }));
     return handoverId;
   },
@@ -244,6 +364,52 @@ export const useAppStore = create<AppState>((set, get) => ({
       agreements: state.agreements.map((a) =>
         a.id === id ? { ...a, status: 'completed' } : a
       ),
+      // 交机清单也同步完成
+      handovers: state.handovers.map((h) =>
+        h.agreementId === id
+          ? { ...h, status: 'done', items: h.items.map((i) => ({ ...i, checked: true })) }
+          : h
+      ),
     }));
   },
+
+  completeHandover: (agreementId) => {
+    set((state) => {
+      const handover = state.handovers.find((h) => h.agreementId === agreementId);
+      return {
+        handovers: state.handovers.map((h) =>
+          h.agreementId === agreementId
+            ? { ...h, status: 'done', items: h.items.map((i) => ({ ...i, checked: true })) }
+            : h
+        ),
+        agreements: state.agreements.map((a) =>
+          a.id === agreementId ? { ...a, status: 'completed' } : a
+        ),
+        // 同步把车源标记为已售，并记一条操作日志
+        machines: handover
+          ? state.machines.map((m) =>
+              m.id === handover.machineId ? { ...m, status: 'sold' as Machine['status'] } : m
+            )
+          : state.machines,
+        machineOpLogs: handover
+          ? pushOpLog(state.machineOpLogs, handover.machineId, 'sold', '交机完成，车源已售出')
+          : state.machineOpLogs,
+      };
+    });
+  },
+
+  markHandoverFailed: (agreementId, reasonLabel) => {
+    set((state) => ({
+      handovers: state.handovers.map((h) =>
+        h.agreementId === agreementId ? { ...h, status: 'failed' } : h
+      ),
+      agreements: state.agreements.map((a) =>
+        a.id === agreementId ? { ...a, status: 'cancelled' } : a
+      ),
+    }));
+    void reasonLabel;
+  },
 }));
+
+// 初始化时校正降价提醒匹配状态，确保 mock 数据与真实车源一致
+useAppStore.getState().refreshPriceAlertMatches();
