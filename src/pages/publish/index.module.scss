@@ -231,11 +231,16 @@
 
 .myItem {
   display: flex;
+  flex-direction: column;
   background: $color-bg-card;
   border-radius: $radius-lg;
   padding: $spacing-sm;
   margin-bottom: $spacing-md;
   box-shadow: $shadow-card;
+}
+
+.myItemHeader {
+  display: flex;
 }
 
 .myCover {
@@ -253,6 +258,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: $spacing-xs;
 }
 
 .myTitle {
@@ -266,10 +272,16 @@
   -webkit-line-clamp: 1;
 }
 
-.myStatusRow {
+.myInfoRow {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+}
+
+.myTag {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
 }
 
 .myPrice {
@@ -278,10 +290,208 @@
   font-weight: $font-weight-bold;
 }
 
-.myViews {
+.mySite {
   font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  color: $color-text-secondary;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   margin-left: auto;
+  text-align: right;
+}
+
+.myHighlights {
+  padding: $spacing-xs $spacing-sm;
+  margin: $spacing-xs 0;
+  background: linear-gradient(135deg, #fff7e8 0%, #fff3e8 100%);
+  border-radius: $radius-md;
+}
+
+.myHighlight {
+  display: block;
+  font-size: 22rpx;
+  color: #8a4a00;
+  line-height: 1.6;
+}
+
+.myActions {
+  display: flex;
+  gap: $spacing-sm;
+  padding-top: $spacing-sm;
+  border-top: 1rpx solid $color-divider;
+}
+
+.myBtn {
+  flex: 1;
+  padding: $spacing-xs 0;
+  border-radius: $radius-xs;
+  background: $color-bg-hover;
+  text-align: center;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+
+  &:active {
+    background: $color-bg-pressed;
+  }
+}
+
+.myBtnPrimary {
+  background: rgba($color-primary, 0.1);
+  color: $color-primary;
+}
+
+.myBtnWarn {
+  background: rgba($color-error, 0.08);
+  color: $color-error;
+}
+
+// 底部弹层
+.mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+}
+
+.sheet {
+  width: 100%;
+  background: $color-bg-card;
+  border-radius: $radius-lg $radius-lg 0 0;
+  padding: $spacing-lg $page-padding;
+  padding-bottom: calc(#{$spacing-lg} + env(safe-area-inset-bottom));
+  position: relative;
+}
+
+.sheetTitle {
+  display: block;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.sheetSubtitle {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+}
+
+.sheetInput {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  padding-right: 80rpx;
+  border-radius: $radius-md;
+  background: $color-bg-hover;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  position: relative;
+  text-align: right;
+}
+
+.sheetInputSuffix {
+  position: absolute;
+  right: calc(#{$page-padding} + #{$spacing-md});
+  top: 50%;
+  transform: translateY(-20rpx);
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.switch {
+  width: 96rpx;
+  height: 56rpx;
+  border-radius: 999rpx;
+  background: $color-bg-hover;
+  padding: 4rpx;
+  transition: all $transition-base;
+}
+
+.switchOn {
+  background: $color-primary;
+}
+
+.switchDot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 999rpx;
+  background: $color-text-white;
+  transition: all $transition-base;
+}
+
+.switchDotOn {
+  transform: translateX(40rpx);
+}
+
+.timeSlots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+.timeSlotChip {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: 999rpx;
+  background: rgba($color-primary, 0.1);
+  font-size: $font-size-sm;
+  color: $color-primary;
+}
+
+.sheetActions {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+}
+
+.sheetCancel {
+  flex: 1;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  background: $color-bg-hover;
+  color: $color-text-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-md;
+
+  &:active {
+    background: $color-bg-pressed;
+  }
+}
+
+.sheetConfirm {
+  flex: 2;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.sheetWarn {
+  background: linear-gradient(135deg, $color-error 0%, #ff6b6b 100%);
 }
 
 // 底部发布按钮

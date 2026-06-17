@@ -47,6 +47,7 @@ export interface Machine {
   city: string; // 常驻工地城市
   site: string; // 常驻工地
   minPrice: number; // 最低出手价（万元）
+  originalPrice?: number; // 原始发布价（用于对比改价）
   condition: ConditionLevel;
   cover: string; // 封面图
   images: string[];
@@ -54,11 +55,13 @@ export interface Machine {
   sellPoint: SellPoint;
   canViewToday: boolean; // 可当天看机
   includeTransport: boolean; // 包板车运输
+  nextAvailableDate?: string; // 最近可看日期（刷新时更新）
   sellerId: string;
   sellerName: string;
   sellerAvatar: string;
   publishedAt: string; // 发布时间
   collected: boolean; // 是否已收藏
+  status: 'online' | 'offline' | 'sold'; // 上架 / 下架 / 已售
 }
 
 // 急找设备广播
@@ -126,14 +129,21 @@ export interface Booking {
 // 定金协议
 export interface DepositAgreement {
   id: string;
+  machineId: string;
   machineTitle: string;
   machineCover: string;
   sellerName: string;
+  sellerPhone: string;
   buyerName: string;
+  buyerPhone: string;
   dealPrice: number; // 成交价（万元）
   deposit: number; // 定金（元）
+  myRole: 'buyer' | 'seller'; // 当前用户身份
+  paymentStatus: 'unpaid' | 'paid' | 'partial'; // 付款状态
+  paymentNote?: string; // 付款备注
+  handoverId?: string; // 关联的交机清单ID
   signedAt: string;
-  status: 'signed' | 'completed';
+  status: 'signed' | 'handover_start' | 'completed' | 'cancelled'; // 签约定金 / 交机中 / 完成 / 取消
 }
 
 // 交机清单项

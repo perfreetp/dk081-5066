@@ -8,6 +8,7 @@ import { mockBookings, mockPriceAlerts, mockAgreements } from '@/data/mine';
 interface AppState {
   // 当前用户
   currentUser: {
+    id: string;
     name: string;
     phone: string;
     city: string;
@@ -38,8 +39,15 @@ interface AppState {
   // 发布车源
   publishMachine: (machine: Machine) => void;
 
+  // 车源管理
+  updateMachinePrice: (id: string, newPrice: number) => void;
+  toggleMachineStatus: (id: string, status: Machine['status']) => void;
+  refreshAvailable: (id: string, canViewToday: boolean, nextDate: string) => void;
+
   // 预约看机
   addBooking: (booking: Booking) => void;
+  updateBookingStatus: (id: string, status: Booking['status']) => void;
+  rescheduleBooking: (id: string, viewDate: string, viewTimeSlot: string) => void;
 
   // 急找广播
   addBroadcast: (broadcast: Broadcast) => void;
@@ -51,11 +59,15 @@ interface AppState {
 
   // 定金协议
   addAgreement: (agreement: DepositAgreement) => void;
+  updateAgreementPayment: (id: string, status: DepositAgreement['paymentStatus'], note?: string) => void;
+  startHandover: (id: string) => string; // 返回 handoverId
+  completeAgreement: (id: string) => void;
 }
 
 // 计算某类机型的当前最低价
 const calcMinPriceFor = (machines: Machine[], categoryLabel: string, modelKeyword: string): number => {
   const filtered = machines.filter((m) => {
+    if (m.status !== 'online') return false;
     if (categoryLabel && m.categoryLabel !== categoryLabel) return false;
     if (modelKeyword) {
       const kw = modelKeyword.toLowerCase();
@@ -75,13 +87,14 @@ const calcMinPriceFor = (machines: Machine[], categoryLabel: string, modelKeywor
 
 export const useAppStore = create<AppState>((set, get) => ({
   currentUser: {
+    id: 'u_self',
     name: '老王',
     phone: '139-9000-5678',
     city: '成都市',
     avatar: 'https://picsum.photos/id/64/200/200',
   },
 
-  machines: mockMachines,
+  machines: mockMachines.map((m) => ({ ...m, status: (m.status || 'online') as Machine['status'], originalPrice: m.originalPrice || m.minPrice })),
   collectedIds: mockMachines.filter((m) => m.collected).map((m) => m.id),
   myMachineIds: [],
   bookings: mockBookings,
@@ -107,14 +120,58 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   publishMachine: (machine) => {
     set((state) => ({
-      machines: [machine, ...state.machines],
+      machines: [{ ...machine, status: 'online', originalPrice: machine.originalPrice || machine.minPrice }, ...state.machines],
       myMachineIds: [machine.id, ...state.myMachineIds],
+    }));
+    // 发布后刷新降价提醒匹配
+    get().refreshPriceAlertMatches();
+  },
+
+  // 车源管理
+  updateMachinePrice: (id, newPrice) => {
+    set((state) => ({
+      machines: state.machines.map((m) =>
+        m.id === id ? { ...m, minPrice: newPrice } : m
+      ),
+    }));
+    get().refreshPriceAlertMatches();
+  },
+
+  toggleMachineStatus: (id, status) => {
+    set((state) => ({
+      machines: state.machines.map((m) =>
+        m.id === id ? { ...m, status } : m
+      ),
+    }));
+  },
+
+  refreshAvailable: (id, canViewToday, nextDate) => {
+    set((state) => ({
+      machines: state.machines.map((m) =>
+        m.id === id ? { ...m, canViewToday, nextAvailableDate: nextDate } : m
+      ),
     }));
   },
 
   addBooking: (booking) => {
     set((state) => ({
       bookings: [booking, ...state.bookings],
+    }));
+  },
+
+  updateBookingStatus: (id, status) => {
+    set((state) => ({
+      bookings: state.bookings.map((b) =>
+        b.id === id ? { ...b, status } : b
+      ),
+    }));
+  },
+
+  rescheduleBooking: (id, viewDate, viewTimeSlot) => {
+    set((state) => ({
+      bookings: state.bookings.map((b) =>
+        b.id === id ? { ...b, viewDate, viewTimeSlot, status: 'pending' } : b
+      ),
     }));
   },
 
@@ -161,6 +218,32 @@ export const useAppStore = create<AppState>((set, get) => ({
   addAgreement: (agreement) => {
     set((state) => ({
       agreements: [agreement, ...state.agreements],
+    }));
+  },
+
+  updateAgreementPayment: (id, status, note) => {
+    set((state) => ({
+      agreements: state.agreements.map((a) =>
+        a.id === id ? { ...a, paymentStatus: status, paymentNote: note || a.paymentNote } : a
+      ),
+    }));
+  },
+
+  startHandover: (id) => {
+    const handoverId = `hd_${Date.now()}`;
+    set((state) => ({
+      agreements: state.agreements.map((a) =>
+        a.id === id ? { ...a, status: 'handover_start', handoverId } : a
+      ),
+    }));
+    return handoverId;
+  },
+
+  completeAgreement: (id) => {
+    set((state) => ({
+      agreements: state.agreements.map((a) =>
+        a.id === id ? { ...a, status: 'completed' } : a
+      ),
     }));
   },
 }));

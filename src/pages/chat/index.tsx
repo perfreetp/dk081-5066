@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import classnames from 'classnames';
@@ -16,6 +16,24 @@ const ChatPage: React.FC = () => {
   const conversation = mockConversations.find((c) => c.id === convId) || mockConversations[0];
   const addAgreement = useAppStore((s) => s.addAgreement);
   const currentUser = useAppStore((s) => s.currentUser);
+  const getMachineById = useAppStore((s) => s.getMachineById);
+  const machines = useAppStore((s) => s.machines);
+
+  // 根据会话machineTitle找匹配的machineId
+  const matchedMachine = useMemo(() => {
+    return machines.find((m) => m.title === conversation.machineTitle);
+  }, [machines, conversation.machineTitle]);
+
+  // 判断当前用户角色：peerRole=owner 表示对方是卖家→我是买家；反之我是卖家
+  const isMyRoleBuyer = conversation.peerRole === 'owner';
+  const myRole: 'buyer' | 'seller' = isMyRoleBuyer ? 'buyer' : 'seller';
+  const counterPartyName = conversation.peerName;
+  const counterPartyPhone = '139-' + String(Math.floor(Math.random() * 9000) + 1000) + '-' + String(Math.floor(Math.random() * 9000) + 1000);
+
+  const sellerName = isMyRoleBuyer ? counterPartyName : currentUser.name;
+  const sellerPhone = isMyRoleBuyer ? counterPartyPhone : currentUser.phone;
+  const buyerName = isMyRoleBuyer ? currentUser.name : counterPartyName;
+  const buyerPhone = isMyRoleBuyer ? currentUser.phone : counterPartyPhone;
 
   const [messages, setMessages] = useState<ChatMessage[]>(mockChatMessages[convId] || []);
   const [inputText, setInputText] = useState('');
@@ -102,12 +120,17 @@ const ChatPage: React.FC = () => {
     }
     const agreement: DepositAgreement = {
       id: `da_${Date.now()}`,
+      machineId: matchedMachine?.id || 'unknown',
       machineTitle: conversation.machineTitle,
       machineCover: conversation.machineCover,
-      sellerName: conversation.peerName,
-      buyerName: currentUser.name,
+      sellerName,
+      sellerPhone,
+      buyerName,
+      buyerPhone,
       dealPrice: price,
       deposit: deposit,
+      myRole,
+      paymentStatus: 'unpaid',
       signedAt: new Date().toISOString(),
       status: 'signed',
     };
@@ -117,7 +140,7 @@ const ChatPage: React.FC = () => {
     setDealDeposit('5000');
     Taro.showModal({
       title: '成交确认',
-      content: `已生成定金协议\n成交价：¥${formatPrice(price)}万\n定金：¥${deposit.toLocaleString()}元\n可在"我的-定金协议"中查看`,
+      content: `已生成定金协议（${myRole === 'buyer' ? '买方' : '卖方'}身份）\n成交价：¥${formatPrice(price)}万\n定金：¥${deposit.toLocaleString()}元\n可在"我的-定金协议"中查看`,
       showCancel: false,
       confirmText: '查看协议',
       success: () => {
@@ -305,12 +328,15 @@ const ChatPage: React.FC = () => {
 
       {sheetType === 'deal' && (
         <View className={styles.sheet}>
-          <Text className={styles.sheetTitle}>确认成交</Text>
+          <Text className={styles.sheetTitle}>确认成交（{myRole === 'buyer' ? '买方视角' : '卖方视角'}）</Text>
           <View className={styles.dealMachine}>
             <Image className={styles.dealMachineCover} src={conversation.machineCover} mode="aspectFill" />
             <View className={styles.dealMachineBody}>
               <Text className={styles.dealMachineTitle}>{conversation.machineTitle}</Text>
-              <Text className={styles.dealMachineSub}>卖家：{conversation.peerName}</Text>
+              <Text className={styles.dealMachineSub}>
+                卖家：{sellerName}{myRole === 'seller' ? '（我）' : ''}</Text>
+              <Text className={styles.dealMachineSub}>
+                买家：{buyerName}{myRole === 'buyer' ? '（我）' : ''}</Text>
             </View>
           </View>
           <View className={styles.sheetField}>
@@ -328,7 +354,7 @@ const ChatPage: React.FC = () => {
             <Input
               className={styles.sheetFieldInput}
               type="digit"
-              placeholder="请输入定金金额"
+              placeholder="请输入定金金额，默认5000"
               value={dealDeposit}
               onInput={(e) => setDealDeposit(e.detail.value)}
             />

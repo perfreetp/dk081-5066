@@ -27,9 +27,25 @@ const DetailPage: React.FC = () => {
 
   const cond = useMemo(() => (machine ? conditionMap[machine.condition] : conditionMap.good), [machine]);
 
-  const hasAlert = useMemo(() => {
-    if (!machine) return false;
-    return priceAlerts.some((a) => a.categoryLabel === machine.categoryLabel);
+  // 同类已关注的数量（用于显示badge）
+  const sameCategoryAlertCount = useMemo(() => {
+    if (!machine) return 0;
+    return priceAlerts.filter((a) => a.categoryLabel === machine.categoryLabel).length;
+  }, [priceAlerts, machine]);
+
+  // 是否已关注当前具体型号（精确匹配category+model关键词）
+  const sameModelAlertId = useMemo(() => {
+    if (!machine) return null;
+    const model = machine.model.toLowerCase();
+    const hit = priceAlerts.find(
+      (a) =>
+        a.categoryLabel === machine.categoryLabel &&
+        a.modelKeyword &&
+        (model.includes(a.modelKeyword.toLowerCase()) ||
+          a.modelKeyword.toLowerCase().includes(model) ||
+          machine.title.toLowerCase().includes(a.modelKeyword.toLowerCase()))
+    );
+    return hit ? hit.id : null;
   }, [priceAlerts, machine]);
 
   const [showAlertSheet, setShowAlertSheet] = useState(false);
@@ -75,7 +91,7 @@ const DetailPage: React.FC = () => {
 
   const handleOpenAlert = () => {
     setAlertCategoryLabel(machine.categoryLabel);
-    setModelKeyword('');
+    setModelKeyword(machine.model || ''); // 默认预填当前机型
     setTargetPrice(String(Math.floor(machine.minPrice * 0.9)));
     setShowAlertSheet(true);
   };
@@ -88,18 +104,49 @@ const DetailPage: React.FC = () => {
     }
     addPriceAlert({
       categoryLabel: alertCategoryLabel,
-      modelKeyword,
+      modelKeyword: modelKeyword.trim(),
       targetPrice: price,
     });
     setShowAlertSheet(false);
-    Taro.showToast({ title: '已关注降价提醒', icon: 'success' });
+    const tipText = modelKeyword.trim()
+      ? `已关注「${alertCategoryLabel}·${modelKeyword.trim()}」降价提醒`
+      : `已关注「${alertCategoryLabel}」降价提醒`;
+    Taro.showToast({ title: tipText, icon: 'success' });
   };
 
-  const handleRemoveAlert = () => {
-    const alert = priceAlerts.find((a) => a.categoryLabel === machine.categoryLabel);
-    if (alert) {
-      removePriceAlert(alert.id);
-      Taro.showToast({ title: '已取消关注', icon: 'none' });
+  // 点击底部降价提醒按钮时，如果已有具体型号的关注，询问是否取消；否则直接打开新增
+  const handleAlertBtnClick = () => {
+    if (sameModelAlertId) {
+      Taro.showActionSheet({
+        itemList: [
+          '新增其他机型降价提醒',
+          '取消此机型（' + (machine.model || machine.categoryLabel) + '）的关注',
+        ],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            handleOpenAlert();
+          } else if (res.tapIndex === 1) {
+            removePriceAlert(sameModelAlertId);
+            Taro.showToast({ title: '已取消该机型关注', icon: 'none' });
+          }
+        },
+      });
+    } else if (sameCategoryAlertCount > 0) {
+      Taro.showActionSheet({
+        itemList: [
+          '新增降价提醒（可指定具体型号）',
+          `管理已有${sameCategoryAlertCount}条关注`,
+        ],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            handleOpenAlert();
+          } else if (res.tapIndex === 1) {
+            Taro.navigateTo({ url: '/pages/agreement/index?tab=alert' });
+          }
+        },
+      });
+    } else {
+      handleOpenAlert();
     }
   };
 
@@ -220,13 +267,15 @@ const DetailPage: React.FC = () => {
         </View>
         <View
           className={styles.footerIconBtn}
-          onClick={hasAlert ? handleRemoveAlert : handleOpenAlert}
+          onClick={handleAlertBtnClick}
         >
-          <Text className={classnames(styles.footerIcon, hasAlert && styles.footerIconActive)}>
-            {hasAlert ? '🔔' : '🔕'}
+          <Text className={classnames(styles.footerIcon, (sameCategoryAlertCount > 0) && styles.footerIconActive)}>
+            🔔
           </Text>
-          <Text className={classnames(styles.footerIconText, hasAlert && styles.footerIconTextActive)}>
-            {hasAlert ? '已关注降价' : '降价提醒'}
+          <Text className={classnames(styles.footerIconText, (sameCategoryAlertCount > 0) && styles.footerIconTextActive)}>
+            {sameCategoryAlertCount > 0
+              ? `已关注${sameCategoryAlertCount}条`
+              : '降价提醒'}
           </Text>
         </View>
         <View className={styles.footerIconBtn} onClick={handleChat}>

@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, Input, Image } from '@tarojs/components';
+import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import classnames from 'classnames';
+import dayjs from 'dayjs';
 import { VIDEO_TYPES, generateSellPoints } from '@/utils/sellpoint';
-import { hoursToCondition } from '@/utils/format';
+import { hoursToCondition, formatHours } from '@/utils/format';
 import { useAppStore } from '@/store/useAppStore';
 import type { Machine, SellPoint, MachineCategory, VerifyVideo } from '@/types';
 import SellPointCard from '@/components/SellPointCard';
@@ -34,6 +35,14 @@ interface FormState {
   includeTransport: boolean;
 }
 
+const STATUS_LABEL: Record<Machine['status'], { label: string; bg: string; color: string }> = {
+  online: { label: '在售', bg: '#fff3e8', color: '#ff6b00' },
+  offline: { label: '已下架', bg: '#f2f3f5', color: '#86909c' },
+  sold: { label: '已成交', bg: '#e8ffea', color: '#00b42a' },
+};
+
+const TIME_SLOTS = ['上午 09:00-12:00', '下午 14:00-18:00', '全天可看'];
+
 const PublishPage: React.FC = () => {
   const router = useRouter();
   const initialTab = router.params.tab === 'list' ? 'list' : 'form';
@@ -44,6 +53,9 @@ const PublishPage: React.FC = () => {
   const myMachineIds = useAppStore((s) => s.myMachineIds);
   const publishMachine = useAppStore((s) => s.publishMachine);
   const refreshPriceAlertMatches = useAppStore((s) => s.refreshPriceAlertMatches);
+  const updateMachinePrice = useAppStore((s) => s.updateMachinePrice);
+  const toggleMachineStatus = useAppStore((s) => s.toggleMachineStatus);
+  const refreshAvailable = useAppStore((s) => s.refreshAvailable);
 
   const myMachines = useMemo(
     () => machines.filter((m) => myMachineIds.includes(m.id)),
@@ -74,6 +86,13 @@ const PublishPage: React.FC = () => {
     noRepair: true,
     paperComplete: true,
   });
+
+  // 操作弹层状态
+  const [editingMachine, setEditingMachine] = useState<Machine | null>(null);
+  const [actionType, setActionType] = useState<'price' | 'refresh' | 'status' | null>(null);
+  const [editPrice, setEditPrice] = useState('');
+  const [editCanToday, setEditCanToday] = useState(true);
+  const [editNextDate, setEditNextDate] = useState('');
 
   const updateForm = (key: keyof FormState, value: string | boolean) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -140,6 +159,7 @@ const PublishPage: React.FC = () => {
       city: form.city || '城市待填',
       site: form.site || '工地待填',
       minPrice: Number(form.minPrice) || 0,
+      originalPrice: Number(form.minPrice) || 0,
       condition: cond.level,
       cover,
       images: imageList,
@@ -152,6 +172,7 @@ const PublishPage: React.FC = () => {
       sellerAvatar: currentUser.avatar,
       publishedAt: new Date().toISOString(),
       collected: false,
+      status: 'online' as const,
     };
   }, [form, checks, videos, currentUser]);
 
@@ -191,6 +212,61 @@ const PublishPage: React.FC = () => {
     Taro.navigateTo({ url: `/pages/detail/index?id=${id}` });
   };
 
+  // 打开改价弹层
+  const openPriceEdit = (m: Machine) => {
+    setEditingMachine(m);
+    setEditPrice(String(m.minPrice));
+    setActionType('price');
+  };
+
+  // 打开刷新可看时间弹层
+  const openRefreshEdit = (m: Machine) => {
+    setEditingMachine(m);
+    setEditCanToday(m.canViewToday);
+    setEditNextDate(m.nextAvailableDate || dayjs().add(1, 'day').format('YYYY-MM-DD'));
+    setActionType('refresh');
+  };
+
+  // 打开状态切换
+  const openStatusEdit = (m: Machine) => {
+    setEditingMachine(m);
+    setActionType('status');
+  };
+
+  // 确认改价
+  const confirmPriceEdit = () => {
+    if (!editingMachine) return;
+    const newPrice = Number(editPrice);
+    if (!newPrice || newPrice <= 0) {
+      Taro.showToast({ title: '请输入有效价格', icon: 'none' });
+      return;
+    }
+    updateMachinePrice(editingMachine.id, newPrice);
+    Taro.showToast({ title: '价格已更新', icon: 'success' });
+    closeActionSheet();
+  };
+
+  // 确认刷新
+  const confirmRefreshEdit = () => {
+    if (!editingMachine) return;
+    refreshAvailable(editingMachine.id, editCanToday, editNextDate);
+    Taro.showToast({ title: '可看时间已刷新', icon: 'success' });
+    closeActionSheet();
+  };
+
+  // 确认状态切换
+  const confirmStatus = (status: Machine['status']) => {
+    if (!editingMachine) return;
+    toggleMachineStatus(editingMachine.id, status);
+    Taro.showToast({ title: STATUS_LABEL[status].label, icon: 'success' });
+    closeActionSheet();
+  };
+
+  const closeActionSheet = () => {
+    setEditingMachine(null);
+    setActionType(null);
+  };
+
   const checkOptions: { key: string; label: string }[] = [
     { key: 'noOilLeak', label: '无漏油' },
     { key: 'noRepair', label: '无大修' },
@@ -220,7 +296,7 @@ const PublishPage: React.FC = () => {
       </View>
 
       {tab === 'form' ? (
-        <View className={styles.form}>
+        <ScrollView scrollY className={styles.form}>
           <View className={styles.section}>
             <Text className={styles.sectionTitle}>
               <Text className={styles.sectionIcon}>🚜</Text> 基本信息
@@ -388,46 +464,169 @@ const PublishPage: React.FC = () => {
           <SellPointCard machine={previewMachine} />
 
           <View style={{ height: '32rpx' }} />
-        </View>
+        </ScrollView>
       ) : (
-        <View className={styles.myList}>
+        <ScrollView scrollY className={styles.myList}>
           <SectionHeader title="我的车源" subtitle={`${myMachines.length}台`} />
           {myMachines.length === 0 ? (
             <EmptyState text="还没有发过的车源" hint="点击上方发布新车源" />
           ) : (
-            myMachines.map((m) => (
-              <View key={m.id} className={styles.myItem} onClick={() => handleMachineClick(m.id)}>
-                <Image className={styles.myCover} src={m.cover} mode="aspectFill" />
-                <View className={styles.myBody}>
-                  <Text className={styles.myTitle}>{m.title}</Text>
-                  <View className={styles.myStatusRow}>
-                    <View
-                      style={{
-                        padding: '2rpx 12rpx',
-                        borderRadius: '4rpx',
-                        background: '#fff3e8',
-                        color: '#ff6b00',
-                        fontSize: '22rpx',
-                      }}
-                    >
-                      在售
+            myMachines.map((m) => {
+              const st = STATUS_LABEL[m.status];
+              const priceDropped = m.originalPrice && m.minPrice < m.originalPrice;
+              return (
+                <View key={m.id} className={styles.myItem}>
+                  <View className={styles.myItemHeader} onClick={() => handleMachineClick(m.id)}>
+                    <Image className={styles.myCover} src={m.cover} mode="aspectFill" />
+                    <View className={styles.myBody}>
+                      <Text className={styles.myTitle} numberOfLines={1}>{m.title}</Text>
+                      <View className={styles.myInfoRow}>
+                        <View style={{
+                          padding: '2rpx 12rpx', borderRadius: '4rpx',
+                          background: st.bg, color: st.color, fontSize: '22rpx',
+                        }}>
+                          {st.label}
+                        </View>
+                        {priceDropped && (
+                          <View style={{
+                            padding: '2rpx 12rpx', borderRadius: '4rpx',
+                            background: '#ffece8', color: '#f53f3f', fontSize: '22rpx',
+                          }}>
+                            ↓ ¥{(m.originalPrice! - m.minPrice).toFixed(1)}万
+                          </View>
+                        )}
+                        <Text className={styles.myTag}>📹 {m.videos.length}</Text>
+                        <Text className={styles.myTag}>⏱ {formatHours(m.hours)}</Text>
+                      </View>
+                      <View className={styles.myInfoRow}>
+                        <Text className={styles.myPrice}>¥{m.minPrice}万</Text>
+                        <Text className={styles.mySite} numberOfLines={1}>📍 {m.site || m.city}</Text>
+                      </View>
                     </View>
-                    <Text className={styles.myViews}>视频 {m.videos.length}</Text>
                   </View>
-                  <View className={styles.myStatusRow}>
-                    <Text className={styles.myPrice}>¥{m.minPrice}万</Text>
+
+                  {m.sellPoint.highlights && m.sellPoint.highlights.length > 0 && (
+                    <View className={styles.myHighlights}>
+                      {m.sellPoint.highlights.slice(0, 3).map((h, i) => (
+                        <Text key={i} className={styles.myHighlight}>· {h}</Text>
+                      ))}
+                    </View>
+                  )}
+
+                  <View className={styles.myActions}>
+                    {m.status === 'online' ? (
+                      <>
+                        <View className={styles.myBtn} onClick={() => openPriceEdit(m)}>
+                          <Text>💰 改价</Text>
+                        </View>
+                        <View className={styles.myBtn} onClick={() => openRefreshEdit(m)}>
+                          <Text>🔄 刷新可看时间</Text>
+                        </View>
+                        <View className={classnames(styles.myBtn, styles.myBtnWarn)} onClick={() => openStatusEdit(m)}>
+                          <Text>📴 下架</Text>
+                        </View>
+                      </>
+                    ) : m.status === 'offline' ? (
+                      <>
+                        <View className={classnames(styles.myBtn, styles.myBtnPrimary)} onClick={() => confirmStatus('online')}>
+                          <Text>✅ 重新上架</Text>
+                        </View>
+                        <View className={styles.myBtn} onClick={() => openPriceEdit(m)}>
+                          <Text>💰 改价</Text>
+                        </View>
+                      </>
+                    ) : (
+                      <Text style={{ fontSize: '24rpx', color: '#86909c' }}>此车源已成交</Text>
+                    )}
                   </View>
                 </View>
-              </View>
-            ))
+              );
+            })
           )}
-        </View>
+        </ScrollView>
       )}
 
       {tab === 'form' && (
         <View className={styles.footer}>
           <View className={styles.publishBtn} onClick={handlePublish}>
             <Text className={styles.publishBtnText}>发布车源</Text>
+          </View>
+        </View>
+      )}
+
+      {/* 改价弹层 */}
+      {actionType === 'price' && editingMachine && (
+        <View className={styles.mask} onClick={closeActionSheet}>
+          <View className={styles.sheet} onClick={(e) => e.stopPropagation()}>
+            <Text className={styles.sheetTitle}>修改「{editingMachine.title}」价格</Text>
+            <Text className={styles.sheetSubtitle}>原价 ¥{editingMachine.minPrice}万（改价后找车页和详情同步更新）</Text>
+            <Input
+              className={styles.sheetInput}
+              type="digit"
+              placeholder="请输入新价格"
+              value={editPrice}
+              onInput={(e) => setEditPrice(e.detail.value)}
+            />
+            <Text className={styles.sheetInputSuffix}>万元</Text>
+            <View className={styles.sheetActions}>
+              <View className={styles.sheetCancel} onClick={closeActionSheet}>取消</View>
+              <View className={styles.sheetConfirm} onClick={confirmPriceEdit}>确认修改</View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* 刷新可看时间弹层 */}
+      {actionType === 'refresh' && editingMachine && (
+        <View className={styles.mask} onClick={closeActionSheet}>
+          <View className={styles.sheet} onClick={(e) => e.stopPropagation()}>
+            <Text className={styles.sheetTitle}>刷新「{editingMachine.title}」可看时间</Text>
+            <Text className={styles.sheetSubtitle}>告诉买家你什么时候方便看机</Text>
+            <View className={styles.switchRow}>
+              <Text>当天可看</Text>
+              <View
+                className={classnames(styles.switch, editCanToday && styles.switchOn)}
+                onClick={() => setEditCanToday(!editCanToday)}
+              >
+                <View className={classnames(styles.switchDot, editCanToday && styles.switchDotOn)} />
+              </View>
+            </View>
+            <View style={{ marginTop: '24rpx' }}>
+              <Text className={styles.sheetSubtitle}>下次可看日期</Text>
+              <Input
+                className={styles.sheetInput}
+                placeholder="YYYY-MM-DD"
+                value={editNextDate}
+                onInput={(e) => setEditNextDate(e.detail.value)}
+              />
+            </View>
+            <View className={styles.timeSlots}>
+              {TIME_SLOTS.map((s) => (
+                <View key={s} className={styles.timeSlotChip}>
+                  <Text>{s}</Text>
+                </View>
+              ))}
+            </View>
+            <View className={styles.sheetActions}>
+              <View className={styles.sheetCancel} onClick={closeActionSheet}>取消</View>
+              <View className={styles.sheetConfirm} onClick={confirmRefreshEdit}>确认刷新</View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* 状态切换确认弹层 */}
+      {actionType === 'status' && editingMachine && (
+        <View className={styles.mask} onClick={closeActionSheet}>
+          <View className={styles.sheet} onClick={(e) => e.stopPropagation()}>
+            <Text className={styles.sheetTitle}>下架「{editingMachine.title}」</Text>
+            <Text className={styles.sheetSubtitle}>下架后买家将无法在找车页搜索到该车源</Text>
+            <View className={styles.sheetActions}>
+              <View className={styles.sheetCancel} onClick={closeActionSheet}>取消</View>
+              <View className={classnames(styles.sheetConfirm, styles.sheetWarn)} onClick={() => confirmStatus('offline')}>
+                确认下架
+              </View>
+            </View>
           </View>
         </View>
       )}

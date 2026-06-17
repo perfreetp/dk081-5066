@@ -74,6 +74,12 @@
   margin-left: $spacing-md;
 }
 
+.agreementTitleRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
 .agreementTitle {
   font-size: $font-size-md;
   font-weight: $font-weight-medium;
@@ -83,6 +89,36 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
+  flex: 1;
+  min-width: 0;
+}
+
+.roleChip {
+  font-size: 20rpx;
+  color: #7b3a00;
+  background: #fff1dd;
+  padding: 2rpx 10rpx;
+  border-radius: $radius-xs;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.agreementStatusRow {
+  display: flex;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+}
+
+.agreementStatus {
+  display: inline-block;
+  margin-top: $spacing-xs;
+  padding: 2rpx $spacing-sm;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+}
+
+.statusCustom {
+  font-size: 22rpx;
 }
 
 .agreementStatus {
@@ -165,6 +201,46 @@
   margin-top: $spacing-md;
 }
 
+.paymentActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx dashed $color-divider;
+}
+
+.paymentActionsTitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.paymentChips {
+  display: flex;
+  gap: $spacing-xs;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.payChip {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-sm;
+  background: $color-bg-hover;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+
+  &:active {
+    background: $color-bg-pressed;
+  }
+}
+
+.payChipActive {
+  background: $color-primary;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}
+
 .actionBtn {
   flex: 1;
   height: $button-height-sm;
@@ -181,6 +257,18 @@
 
 .primaryBtn {
   background: $color-primary;
+}
+
+.successBtn {
+  background: $color-success;
+}
+
+.doneBtn {
+  background: $color-tag-bg-green;
+
+  .primaryText {
+    color: $color-success;
+  }
 }
 
 .primaryText {
@@ -267,6 +355,12 @@
   padding: $spacing-md;
   margin-bottom: $spacing-sm;
   box-shadow: $shadow-card;
+  position: relative;
+}
+
+.alertItemMatched {
+  background: linear-gradient(135deg, #f0fff4 0%, #e8ffea 100%);
+  border: 2rpx solid rgba($color-success, 0.3);
 }
 
 .alertIcon {
@@ -281,10 +375,20 @@
   flex-shrink: 0;
 }
 
+.alertIconMatched {
+  background: $color-tag-bg-green;
+}
+
 .alertBody {
   flex: 1;
   min-width: 0;
   margin-left: $spacing-md;
+}
+
+.alertTitleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
 }
 
 .alertTitle {
@@ -293,30 +397,86 @@
   color: $color-text-primary;
 }
 
+.alertModel {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.alertPriceRow {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-sm;
+  margin-top: $spacing-xs;
+}
+
+.alertPriceBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.alertPriceLabel {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+}
+
+.alertTargetPrice {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.alertCurrentPrice {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.alertCurrentPriceMatched {
+  color: $color-success;
+}
+
+.alertDivider {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  align-self: center;
+}
+
 .alertSub {
   margin-top: 4rpx;
   font-size: $font-size-xs;
   color: $color-text-tertiary;
 }
 
+.alertSubMatched {
+  color: $color-success;
+  font-weight: $font-weight-medium;
+}
+
 .alertRight {
   text-align: right;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: $spacing-xs;
 }
 
 .alertMatched {
   font-size: $font-size-xs;
   color: $color-success;
-  font-weight: $font-weight-medium;
-}
-
-.alertPriceVal {
-  font-size: $font-size-lg;
-  color: $color-price;
   font-weight: $font-weight-bold;
 }
 
-.alertTarget {
+.alertWaiting {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
+}
+
+.alertRemove {
+  font-size: 22rpx;
+  color: $color-error;
+  padding: 4rpx $spacing-xs;
+  border-radius: $radius-xs;
+  background: rgba($color-error, 0.08);
 }

@@ -47,6 +47,7 @@ const FindPage: React.FC = () => {
 
   const filteredMachines = useMemo(() => {
     return machines.filter((m) => {
+      if (m.status !== 'online') return false;
       if (filter.category !== 'all' && m.category !== filter.category) return false;
       if (filter.sameCity && m.city !== '成都市') return false;
       if (filter.canViewToday && !m.canViewToday) return false;

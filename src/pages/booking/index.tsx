@@ -22,9 +22,12 @@ const statusMap: Record<string, { text: string; bg: string; color: string }> = {
 const BookingPage: React.FC = () => {
   const router = useRouter();
   const machineId = router.params.id || '';
+  const bookingId = router.params.bookingId || '';
   const machine = useAppStore((s) => (machineId ? s.getMachineById(machineId) : undefined));
   const bookings = useAppStore((s) => s.bookings);
   const addBooking = useAppStore((s) => s.addBooking);
+  const updateBookingStatus = useAppStore((s) => s.updateBookingStatus);
+  const rescheduleBooking = useAppStore((s) => s.rescheduleBooking);
   const currentUser = useAppStore((s) => s.currentUser);
 
   const dateOptions = useMemo(() => {
@@ -47,6 +50,23 @@ const BookingPage: React.FC = () => {
   const [buyerName, setBuyerName] = useState(currentUser.name);
   const [buyerPhone, setBuyerPhone] = useState(currentUser.phone);
   const [submitted, setSubmitted] = useState(false);
+
+  // 详情弹层
+  const [detailBooking, setDetailBooking] = useState<Booking | null>(null);
+  // 改期弹层
+  const [showReschedule, setShowReschedule] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState(dateOptions[0].value);
+  const [rescheduleSlot, setRescheduleSlot] = useState(TIME_SLOTS[0]);
+
+  // 如果从我的页带bookingId进来，直接打开详情
+  useMemo(() => {
+    if (bookingId) {
+      const b = bookings.find((x) => x.id === bookingId);
+      if (b) {
+        setTimeout(() => setDetailBooking(b), 200);
+      }
+    }
+  }, [bookingId, bookings]);
 
   const handleSubmit = () => {
     if (!buyerName || !buyerPhone) {
@@ -80,19 +100,43 @@ const BookingPage: React.FC = () => {
       showCancel: false,
       confirmText: '查看预约',
       success: () => {
-        // 滚动到列表区域即可，不跳走
+        setDetailBooking(newBooking);
       },
     });
   };
 
   const handleNavigate = () => {
-    if (machine) {
+    if (detailBooking) {
+      Taro.showToast({ title: `导航至 ${detailBooking.site}`, icon: 'none' });
+    } else if (machine) {
       Taro.showToast({ title: `导航至 ${machine.site}`, icon: 'none' });
     }
   };
 
-  const handleBookingClick = (id: string) => {
-    Taro.showToast({ title: '查看预约详情', icon: 'none' });
+  const handleBookingClick = (b: Booking) => {
+    setDetailBooking(b);
+  };
+
+  const handleChangeStatus = (status: Booking['status'], tip: string) => {
+    if (!detailBooking) return;
+    updateBookingStatus(detailBooking.id, status);
+    setDetailBooking({ ...detailBooking, status });
+    Taro.showToast({ title: tip, icon: 'success' });
+  };
+
+  const handleOpenReschedule = () => {
+    if (!detailBooking) return;
+    setRescheduleDate(detailBooking.viewDate);
+    setRescheduleSlot(detailBooking.viewTimeSlot);
+    setShowReschedule(true);
+  };
+
+  const handleConfirmReschedule = () => {
+    if (!detailBooking) return;
+    rescheduleBooking(detailBooking.id, rescheduleDate, rescheduleSlot);
+    setDetailBooking({ ...detailBooking, viewDate: rescheduleDate, viewTimeSlot: rescheduleSlot, status: 'pending' });
+    setShowReschedule(false);
+    Taro.showToast({ title: '改期成功', icon: 'success' });
   };
 
   return (
@@ -196,7 +240,7 @@ const BookingPage: React.FC = () => {
           bookings.map((b) => {
             const st = statusMap[b.status] || statusMap.pending;
             return (
-              <View key={b.id} className={styles.bookingItem} onClick={() => handleBookingClick(b.id)}>
+              <View key={b.id} className={styles.bookingItem} onClick={() => handleBookingClick(b)}>
                 <Image className={styles.bookingCover} src={b.machineCover} mode="aspectFill" />
                 <View className={styles.bookingBody}>
                   <Text className={styles.bookingTitle}>{b.machineTitle}</Text>
@@ -216,6 +260,139 @@ const BookingPage: React.FC = () => {
         <View className={styles.footer}>
           <View className={styles.submitBtn} onClick={handleSubmit}>
             <Text className={styles.submitBtnText}>确认预约看机</Text>
+          </View>
+        </View>
+      )}
+
+      {/* 预约详情弹层 */}
+      {detailBooking && (
+        <View className={styles.mask} onClick={() => setDetailBooking(null)}>
+          <View className={styles.sheet} onClick={(e) => e.stopPropagation()}>
+            <View className={styles.sheetHeader}>
+              <Text className={styles.sheetTitle}>预约看机详情</Text>
+              <Text className={styles.sheetClose} onClick={() => setDetailBooking(null)}>✕</Text>
+            </View>
+
+            <View className={styles.detailMachine}>
+              <Image className={styles.detailCover} src={detailBooking.machineCover} mode="aspectFill" />
+              <View className={styles.detailBody}>
+                <Text className={styles.detailTitle}>{detailBooking.machineTitle}</Text>
+                <View
+                  className={styles.statusBadge}
+                  style={{
+                    background: (statusMap[detailBooking.status] || statusMap.pending).bg,
+                    color: (statusMap[detailBooking.status] || statusMap.pending).color,
+                  }}
+                >
+                  <Text>{(statusMap[detailBooking.status] || statusMap.pending).text}</Text>
+                </View>
+              </View>
+            </View>
+
+            <View className={styles.detailSection}>
+              <View className={styles.detailRow}>
+                <Text className={styles.detailLabel}>📅 看机日期</Text>
+                <Text className={styles.detailValue}>{detailBooking.viewDate}</Text>
+              </View>
+              <View className={styles.detailRow}>
+                <Text className={styles.detailLabel}>⏰ 可看时段</Text>
+                <Text className={styles.detailValue}>{detailBooking.viewTimeSlot}</Text>
+              </View>
+              <View className={styles.detailRow}>
+                <Text className={styles.detailLabel}>📍 工地位置</Text>
+                <Text className={styles.detailValue}>{detailBooking.city} {detailBooking.site}</Text>
+              </View>
+              <View className={styles.detailRow}>
+                <Text className={styles.detailLabel}>👷 联系人</Text>
+                <Text className={styles.detailValue}>{detailBooking.buyerName} · {detailBooking.buyerPhone}</Text>
+              </View>
+              <View className={styles.detailRow}>
+                <Text className={styles.detailLabel}>🚜 卖家</Text>
+                <Text className={styles.detailValue}>{detailBooking.sellerName} · {detailBooking.sellerPhone}</Text>
+              </View>
+            </View>
+
+            <View className={styles.detailActions}>
+              <View className={styles.detailGhostBtn} onClick={handleNavigate}>
+                <Text>🗺️ 导航</Text>
+              </View>
+              {detailBooking.status === 'pending' && (
+                <>
+                  <View className={styles.detailGhostBtn} onClick={handleOpenReschedule}>
+                    <Text>🔄 改期</Text>
+                  </View>
+                  <View className={styles.detailPrimaryBtn} onClick={() => handleChangeStatus('confirmed', '卖家已确认')}>
+                    <Text>✅ 卖家确认</Text>
+                  </View>
+                  <View className={styles.detailDangerBtn} onClick={() => handleChangeStatus('failed', '预约已取消')}>
+                    <Text>取消预约</Text>
+                  </View>
+                </>
+              )}
+              {detailBooking.status === 'confirmed' && (
+                <>
+                  <View className={styles.detailGhostBtn} onClick={handleOpenReschedule}>
+                    <Text>🔄 改期</Text>
+                  </View>
+                  <View className={styles.detailPrimaryBtn} onClick={() => handleChangeStatus('done', '已完成看机')}>
+                    <Text>🏁 标记已看</Text>
+                  </View>
+                  <View className={styles.detailDangerBtn} onClick={() => handleChangeStatus('failed', '预约已取消')}>
+                    <Text>取消预约</Text>
+                  </View>
+                </>
+              )}
+              {(detailBooking.status === 'done' || detailBooking.status === 'failed') && (
+                <View className={styles.detailGhostBtn} style={{ flex: 1 }} onClick={() => setDetailBooking(null)}>
+                  <Text>关闭</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* 改期弹层 */}
+      {showReschedule && detailBooking && (
+        <View className={styles.mask} onClick={() => setShowReschedule(false)}>
+          <View className={styles.sheet} onClick={(e) => e.stopPropagation()}>
+            <View className={styles.sheetHeader}>
+              <Text className={styles.sheetTitle}>改期预约看机</Text>
+              <Text className={styles.sheetClose} onClick={() => setShowReschedule(false)}>✕</Text>
+            </View>
+
+            <Text className={styles.sectionSubtitle}>选择新的可看日期</Text>
+            <View className={styles.dateRow}>
+              {dateOptions.map((d) => (
+                <View
+                  key={d.value}
+                  className={classnames(styles.dateItem, rescheduleDate === d.value && styles.dateItemActive)}
+                  onClick={() => setRescheduleDate(d.value)}
+                >
+                  <Text className={styles.dateWeekday}>{d.weekday}</Text>
+                  <Text className={styles.dateDay}>{d.day}</Text>
+                  <Text className={styles.dateLabel}>{d.label}</Text>
+                </View>
+              ))}
+            </View>
+
+            <Text className={styles.sectionSubtitle}>选择新的可看时段</Text>
+            <View className={styles.slotRow}>
+              {TIME_SLOTS.map((s) => (
+                <View
+                  key={s}
+                  className={classnames(styles.slotItem, rescheduleSlot === s && styles.slotActive)}
+                  onClick={() => setRescheduleSlot(s)}
+                >
+                  <Text className={styles.slotText}>{s}</Text>
+                </View>
+              ))}
+            </View>
+
+            <View className={styles.sheetActions}>
+              <View className={styles.sheetCancel} onClick={() => setShowReschedule(false)}>取消</View>
+              <View className={styles.sheetConfirm} onClick={handleConfirmReschedule}>确认改期</View>
+            </View>
           </View>
         </View>
       )}
