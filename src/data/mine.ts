@@ -1,4 +1,4 @@
-import type { DepositAgreement, FailRecord, Handover, PriceAlert, Booking } from '@/types';
+import type { DepositAgreement, FailRecord, Handover, PriceAlert, Booking, Fulfillment, MachineInteraction, DailyStatsTrend } from '@/types';
 
 // 我的收藏车源（引用 machines 中 collected 为 true 的）
 export const mockMyCollectedMachineIds = ['m002', 'm006'];
@@ -41,7 +41,7 @@ export const mockMyMachines = [
 export const mockAgreements: DepositAgreement[] = [
   {
     id: 'a001',
-    machineId: 'm003',
+    machineId: 'm008',
     machineTitle: '中联重科 汽车吊 25吨',
     machineCover: 'https://picsum.photos/id/787/200/200',
     sellerName: '吊装老周',
@@ -58,8 +58,8 @@ export const mockAgreements: DepositAgreement[] = [
   },
   {
     id: 'a002',
-    machineId: 'm006',
-    machineTitle: '临工L956F 装载机',
+    machineId: 'm007',
+    machineTitle: '临工L956F 装载机 砂石场利器',
     machineCover: 'https://picsum.photos/id/1082/200/200',
     sellerName: '我',
     sellerPhone: '139-9000-5678',
@@ -81,7 +81,7 @@ export const mockHandovers: Handover[] = [
     id: 'h001',
     agreementId: 'a002',
     machineId: 'm007',
-    machineTitle: '临工L956F 装载机',
+    machineTitle: '临工L956F 装载机 砂石场利器',
     machineCover: 'https://picsum.photos/id/1082/200/200',
     sellerName: '我',
     sellerPhone: '139-9000-5678',
@@ -174,4 +174,105 @@ export const FAIL_REASON_OPTIONS: { value: 'price_gap' | 'condition_mismatch' | 
   { value: 'price_gap', label: '价格差距大' },
   { value: 'condition_mismatch', label: '车况不符' },
   { value: 'paper_issue', label: '手续不齐' },
+];
+
+// 履约进度
+export const mockFulfillments: Fulfillment[] = [
+  {
+    id: 'ff001',
+    agreementId: 'a001',
+    steps: [
+      { key: 'deposit', label: '定金到账', done: true, at: '2026-06-16 16:30:00', note: '已转定金1万，剩余1万下午3点前到账' },
+      { key: 'handover', label: '现场交机', done: false },
+      { key: 'final_payment', label: '尾款结清', done: false },
+      { key: 'followup', label: '售后回访', done: false },
+    ],
+    currentStep: 1,
+    finalPayment: 640000,
+    updatedAt: '2026-06-16 16:30:00',
+  },
+  {
+    id: 'ff002',
+    agreementId: 'a002',
+    steps: [
+      { key: 'deposit', label: '定金到账', done: true, at: '2026-06-12 11:00:00', note: '买家已全额付清定金' },
+      { key: 'handover', label: '现场交机', done: true, at: '2026-06-15 10:00:00' },
+      { key: 'final_payment', label: '尾款结清', done: true, at: '2026-06-15 10:30:00', note: '尾款 22.5万 已全额到账' },
+      { key: 'followup', label: '售后回访', done: true, at: '2026-06-17 09:00:00', note: '买家确认设备运行正常，无异常反馈' },
+    ],
+    currentStep: 3,
+    finalPayment: 225000,
+    followupNote: '买家确认设备运行正常，无异常反馈',
+    updatedAt: '2026-06-17 09:00:00',
+  },
+];
+
+// 车源咨询/预约明细
+export const mockMachineInteractions: MachineInteraction[] = [
+  {
+    id: 'mi001',
+    machineId: 'm004',
+    type: 'consult',
+    source: 'find',
+    userName: '李老板',
+    userAvatar: 'https://picsum.photos/id/1005/200/200',
+    userPhone: '138-1111-2222',
+    content: '这车还在吗？能不能再少点？',
+    createdAt: '2026-06-18 09:15:00',
+  },
+  {
+    id: 'mi002',
+    machineId: 'm004',
+    type: 'booking',
+    source: 'price_alert',
+    userName: '张总',
+    userAvatar: 'https://picsum.photos/id/1012/200/200',
+    userPhone: '137-3333-4444',
+    content: '明天上午来看车',
+    createdAt: '2026-06-17 17:20:00',
+  },
+  {
+    id: 'mi003',
+    machineId: 'm004',
+    type: 'consult',
+    source: 'detail',
+    userName: '王老板',
+    userAvatar: 'https://picsum.photos/id/1027/200/200',
+    userPhone: '139-5555-6666',
+    content: '有没有详细车况报告？',
+    createdAt: '2026-06-17 11:40:00',
+  },
+  {
+    id: 'mi004',
+    machineId: 'm004',
+    type: 'booking',
+    source: 'find',
+    userName: '陈老板',
+    userAvatar: 'https://picsum.photos/id/1025/200/200',
+    userPhone: '135-6666-7777',
+    content: '约下周六看机',
+    createdAt: '2026-06-16 14:30:00',
+  },
+  {
+    id: 'mi005',
+    machineId: 'm008',
+    type: 'consult',
+    source: 'find',
+    userName: '刘总',
+    userAvatar: 'https://picsum.photos/id/1011/200/200',
+    userPhone: '136-7777-8888',
+    content: '25吨汽车吊最低价多少？',
+    createdAt: '2026-06-18 10:05:00',
+  },
+];
+
+// 近7天运营趋势
+export const mockDailyTrends: DailyStatsTrend[] = [
+  { date: '06-12', views: 18, collects: 2, consults: 1, bookings: 0 },
+  { date: '06-13', views: 24, collects: 3, consults: 2, bookings: 1 },
+  { date: '06-14', views: 31, collects: 1, consults: 3, bookings: 0 },
+  { date: '06-15', views: 42, collects: 4, consults: 2, bookings: 2 },
+  { date: '06-16', views: 36, collects: 2, consults: 4, bookings: 1 },
+  { date: '06-17', views: 58, collects: 5, consults: 3, bookings: 2 },
+  { date: '06-18', views: 27, collects: 2, consults: 1, bookings: 0 },
 ];

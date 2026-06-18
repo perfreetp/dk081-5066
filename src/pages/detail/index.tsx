@@ -334,7 +334,7 @@ const DetailPage: React.FC = () => {
 
               <View className={styles.formHint}>
                 <Text className={styles.formHintText}>
-                  当前 {alertCategoryLabel} 最低价约 ¥{formatPrice(machine.minPrice)}万，
+                  当前 {alertCategoryLabel} 最低价约 {machine.minPrice}万，
                   低于您的目标价时将自动通知
                 </Text>
               </View>

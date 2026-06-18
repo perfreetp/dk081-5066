@@ -114,11 +114,11 @@ const HandoverPage: React.FC = () => {
           <View className={styles.depositRow}>
             <View className={styles.depositBlock}>
               <Text className={styles.depositLabel}>成交价</Text>
-              <Text className={styles.depositNum}>¥{formatPrice(handover.dealPrice)}万</Text>
+              <Text className={styles.depositNum}>{handover.dealPrice}万</Text>
             </View>
             <View className={styles.depositBlock}>
               <Text className={styles.depositLabel}>定金</Text>
-              <Text className={styles.depositNum}>¥{handover.deposit.toLocaleString()}</Text>
+              <Text className={styles.depositNum}>{(handover.deposit / 10000).toFixed(1)}万</Text>
             </View>
             <View className={styles.depositBlock}>
               <Text className={styles.depositLabel}>我的身份</Text>

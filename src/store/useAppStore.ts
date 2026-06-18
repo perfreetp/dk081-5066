@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import dayjs from 'dayjs';
-import type { Machine, PriceAlert, Booking, Broadcast, DepositAgreement, Handover, HandoverItem, MachineOpLog, MachineStats } from '@/types';
+import type { Machine, PriceAlert, Booking, Broadcast, DepositAgreement, Handover, HandoverItem, MachineOpLog, MachineStats, Fulfillment, FulfillmentStep, MachineInteraction, DailyStatsTrend } from '@/types';
 import { mockMachines, CATEGORY_FILTERS } from '@/data/machines';
 import { mockBroadcasts } from '@/data/broadcasts';
-import { mockBookings, mockPriceAlerts, mockAgreements, mockHandovers } from '@/data/mine';
+import { mockBookings, mockPriceAlerts, mockAgreements, mockHandovers, mockFulfillments, mockMachineInteractions, mockDailyTrends } from '@/data/mine';
 
 // 默认检查项模板（从协议启动交机时使用）
 const DEFAULT_HANDOVER_ITEMS: HandoverItem[] = [
@@ -52,11 +52,23 @@ interface AppState {
   // 交机清单
   handovers: Handover[];
 
+  // 履约进度
+  fulfillments: Fulfillment[];
+
+  // 车源咨询/预约明细
+  machineInteractions: MachineInteraction[];
+
+  // 近7天运营趋势
+  dailyTrends: DailyStatsTrend[];
+
   // Actions
   toggleCollect: (id: string) => void;
   getMachineById: (id: string) => Machine | undefined;
   getMachineOpLogs: (machineId: string) => MachineOpLog[];
   getHandoverByAgreement: (agreementId: string) => Handover | undefined;
+  getFulfillmentByAgreement: (agreementId: string) => Fulfillment | undefined;
+  getInteractionsForMachine: (machineId: string) => MachineInteraction[];
+  getDailyTrendsForMachine: (machineId?: string) => DailyStatsTrend[];
 
   // 发布车源
   publishMachine: (machine: Machine) => void;
@@ -88,6 +100,12 @@ interface AppState {
   completeAgreement: (id: string) => void;
   completeHandover: (agreementId: string) => void; // 完成交机并同步协议状态
   markHandoverFailed: (agreementId: string, reasonLabel: string) => void;
+
+  // 履约进度
+  createFulfillment: (agreementId: string) => Fulfillment;
+  markFulfillmentStepDone: (agreementId: string, stepKey: FulfillmentStep['key'], note?: string) => void;
+  setFinalPayment: (agreementId: string, amount: number) => void;
+  setFollowupNote: (agreementId: string, note: string) => void;
 }
 
 // 计算某类机型的当前最低价
@@ -148,6 +166,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   priceAlerts: mockPriceAlerts,
   agreements: mockAgreements,
   handovers: mockHandovers,
+  fulfillments: mockFulfillments,
+  machineInteractions: mockMachineInteractions,
+  dailyTrends: mockDailyTrends,
 
   toggleCollect: (id) => {
     set((state) => {
@@ -174,6 +195,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   getMachineOpLogs: (machineId) => get().machineOpLogs.filter((l) => l.machineId === machineId),
 
   getHandoverByAgreement: (agreementId) => get().handovers.find((h) => h.agreementId === agreementId),
+
+  getFulfillmentByAgreement: (agreementId) => get().fulfillments.find((f) => f.agreementId === agreementId),
+
+  getInteractionsForMachine: (machineId) => get().machineInteractions.filter((x) => x.machineId === machineId),
+
+  getDailyTrendsForMachine: (_machineId?) => get().dailyTrends,
 
   publishMachine: (machine) => {
     set((state) => ({
@@ -360,17 +387,31 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   completeAgreement: (id) => {
-    set((state) => ({
-      agreements: state.agreements.map((a) =>
-        a.id === id ? { ...a, status: 'completed' } : a
-      ),
-      // 交机清单也同步完成
-      handovers: state.handovers.map((h) =>
-        h.agreementId === id
-          ? { ...h, status: 'done', items: h.items.map((i) => ({ ...i, checked: true })) }
-          : h
-      ),
-    }));
+    set((state) => {
+      const ag = state.agreements.find((a) => a.id === id);
+      const handover = state.handovers.find((h) => h.agreementId === id);
+      const soldMachineId = handover?.machineId || ag?.machineId;
+      return {
+        agreements: state.agreements.map((a) =>
+          a.id === id ? { ...a, status: 'completed' } : a
+        ),
+        // 交机清单也同步完成
+        handovers: state.handovers.map((h) =>
+          h.agreementId === id
+            ? { ...h, status: 'done', items: h.items.map((i) => ({ ...i, checked: true })) }
+            : h
+        ),
+        // 车源标记为已售
+        machines: soldMachineId
+          ? state.machines.map((m) =>
+              m.id === soldMachineId ? { ...m, status: 'sold' as Machine['status'] } : m
+            )
+          : state.machines,
+        machineOpLogs: soldMachineId
+          ? pushOpLog(state.machineOpLogs, soldMachineId, 'sold', '交易完成，车源已成交')
+          : state.machineOpLogs,
+      };
+    });
   },
 
   completeHandover: (agreementId) => {
@@ -408,6 +449,95 @@ export const useAppStore = create<AppState>((set, get) => ({
       ),
     }));
     void reasonLabel;
+  },
+
+  // 创建履约进度记录（如果已存在则返回已有）
+  createFulfillment: (agreementId) => {
+    const existing = get().fulfillments.find((f) => f.agreementId === agreementId);
+    if (existing) return existing;
+    const ag = get().agreements.find((a) => a.id === agreementId);
+    const initSteps: FulfillmentStep[] = [
+      { key: 'deposit', label: '定金到账', done: false },
+      { key: 'handover', label: '现场交机', done: false },
+      { key: 'final_payment', label: '尾款结清', done: false },
+      { key: 'followup', label: '售后回访', done: false },
+    ];
+    if (ag?.paymentStatus === 'paid') {
+      initSteps[0].done = true;
+      initSteps[0].at = ag.signedAt;
+      initSteps[0].note = '定金已全额到账';
+    }
+    if (ag?.paymentStatus === 'partial') {
+      initSteps[0].done = true;
+      initSteps[0].at = ag.signedAt;
+      initSteps[0].note = ag.paymentNote || '部分定金已到账，待补齐';
+    }
+    // 如果已完成交机或已完成整个协议，提前勾上
+    const hd = get().handovers.find((h) => h.agreementId === agreementId);
+    if (hd?.status === 'done') {
+      initSteps[1].done = true;
+      initSteps[1].at = hd.handoverAt;
+    }
+    if (ag?.status === 'completed') {
+      initSteps[2].done = true;
+      initSteps[3].done = true;
+    }
+    // 计算当前进行中步骤
+    const firstUndone = initSteps.findIndex((s) => !s.done);
+    const currentStep = firstUndone === -1 ? initSteps.length - 1 : firstUndone;
+    const newF: Fulfillment = {
+      id: `ff_${Date.now()}`,
+      agreementId,
+      steps: initSteps,
+      currentStep,
+      finalPayment: ag ? Math.max(0, Math.round(ag.dealPrice * 10000 - ag.deposit)) : undefined,
+      updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+    };
+    set((state) => ({
+      fulfillments: [newF, ...state.fulfillments],
+    }));
+    return newF;
+  },
+
+  markFulfillmentStepDone: (agreementId, stepKey, note) => {
+    set((state) => {
+      const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      const updated = state.fulfillments.map((f) => {
+        if (f.agreementId !== agreementId) return f;
+        const newSteps = f.steps.map((s, idx) => {
+          if (s.key !== stepKey) return s;
+          // 同时自动将之前所有未勾选的也视为已完成
+          return { ...s, done: true, at: s.at || now, note: note || s.note };
+        });
+        // 将该步骤之前的所有步骤全部视为完成（顺序保证）
+        const stepIdx = newSteps.findIndex((s) => s.key === stepKey);
+        for (let i = 0; i < stepIdx; i++) {
+          if (!newSteps[i].done) {
+            newSteps[i] = { ...newSteps[i], done: true, at: now };
+          }
+        }
+        const firstUndone = newSteps.findIndex((s) => !s.done);
+        const currentStep = firstUndone === -1 ? newSteps.length - 1 : firstUndone;
+        return { ...f, steps: newSteps, currentStep, updatedAt: now };
+      });
+      return { fulfillments: updated };
+    });
+  },
+
+  setFinalPayment: (agreementId, amount) => {
+    set((state) => ({
+      fulfillments: state.fulfillments.map((f) =>
+        f.agreementId === agreementId ? { ...f, finalPayment: amount } : f
+      ),
+    }));
+  },
+
+  setFollowupNote: (agreementId, note) => {
+    set((state) => ({
+      fulfillments: state.fulfillments.map((f) =>
+        f.agreementId === agreementId ? { ...f, followupNote: note } : f
+      ),
+    }));
   },
 }));
 

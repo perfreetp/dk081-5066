@@ -68,6 +68,10 @@ const AgreementPage: React.FC = () => {
     Taro.navigateTo({ url: '/pages/handover/index' + (agreementId ? `?agreementId=${agreementId}` : '') });
   };
 
+  const handleViewFulfillment = (agreementId: string) => {
+    Taro.navigateTo({ url: `/pages/fulfillment/index?agreementId=${agreementId}` });
+  };
+
   const handleViewAgreement = (id: string) => {
     const a = agreements.find((x) => x.id === id);
     if (!a) return;
@@ -77,8 +81,8 @@ const AgreementPage: React.FC = () => {
       `${roleText}\n` +
       `卖方：${a.sellerName} ${a.sellerPhone || ''}\n` +
       `买方：${a.buyerName} ${a.buyerPhone || ''}\n` +
-      `成交价：¥${formatPrice(a.dealPrice)}万\n` +
-      `定金：¥${a.deposit.toLocaleString()}元\n` +
+      `成交价：${a.dealPrice}万\n` +
+      `定金：${(a.deposit / 10000).toFixed(1)}万\n` +
       `付款状态：${payText}\n` +
       `${a.paymentNote ? `备注：${a.paymentNote}` : ''}`;
     Taro.showModal({ title: `定金协议 · ${AGREEMENT_STATUS[a.status]?.label || ''}`, content: detail.trim(), showCancel: false });
@@ -220,11 +224,11 @@ const AgreementPage: React.FC = () => {
                       <View className={styles.priceRow}>
                         <View className={styles.priceBlock}>
                           <Text className={styles.priceLabel}>成交价</Text>
-                          <Text className={styles.priceNum}>¥{formatPrice(a.dealPrice)}</Text>
+                          <Text className={styles.priceNum}>{a.dealPrice}万</Text>
                         </View>
                         <View className={styles.depositBlock}>
                           <Text className={styles.priceLabel}>定金</Text>
-                          <Text className={styles.depositNum}>¥{a.deposit.toLocaleString()}</Text>
+                          <Text className={styles.depositNum}>{(a.deposit / 10000).toFixed(1)}万</Text>
                         </View>
                       </View>
                       {a.paymentNote && (
@@ -267,6 +271,9 @@ const AgreementPage: React.FC = () => {
                     <View className={styles.agreementActions}>
                       <View className={classnames(styles.actionBtn, styles.ghostBtn)} onClick={() => handleViewAgreement(a.id)}>
                         <Text className={styles.ghostText}>查看协议</Text>
+                      </View>
+                      <View className={classnames(styles.actionBtn, styles.ghostBtn)} onClick={() => handleViewFulfillment(a.id)}>
+                        <Text className={styles.ghostText}>履约进度</Text>
                       </View>
                       {a.status === 'completed' ? (
                         <View className={classnames(styles.actionBtn, styles.doneBtn)}>

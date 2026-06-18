@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import { VIDEO_TYPES, generateSellPoints } from '@/utils/sellpoint';
 import { hoursToCondition, formatHours } from '@/utils/format';
 import { useAppStore } from '@/store/useAppStore';
-import type { Machine, SellPoint, MachineCategory, VerifyVideo } from '@/types';
+import type { Machine, SellPoint, MachineCategory, VerifyVideo, MachineInteraction } from '@/types';
 import SellPointCard from '@/components/SellPointCard';
 import SectionHeader from '@/components/SectionHeader';
 import EmptyState from '@/components/EmptyState';
@@ -57,6 +57,8 @@ const PublishPage: React.FC = () => {
   const toggleMachineStatus = useAppStore((s) => s.toggleMachineStatus);
   const refreshAvailable = useAppStore((s) => s.refreshAvailable);
   const machineOpLogs = useAppStore((s) => s.machineOpLogs);
+  const getInteractionsForMachine = useAppStore((s) => s.getInteractionsForMachine);
+  const dailyTrends = useAppStore((s) => s.dailyTrends);
 
   const myMachines = useMemo(
     () => machines.filter((m) => myMachineIds.includes(m.id)),
@@ -64,6 +66,11 @@ const PublishPage: React.FC = () => {
   );
 
   const [expandedLogMachineId, setExpandedLogMachineId] = useState<string | null>(null);
+
+  // 运营看板 - 明细弹层
+  const [detailMachine, setDetailMachine] = useState<Machine | null>(null);
+  const [detailTab, setDetailTab] = useState<'consult' | 'booking'>('consult');
+  const [trendMetric, setTrendMetric] = useState<'views' | 'collects' | 'consults' | 'bookings'>('views');
 
   const [form, setForm] = useState<FormState>({
     category: 'excavator',
@@ -471,6 +478,83 @@ const PublishPage: React.FC = () => {
         </ScrollView>
       ) : (
         <ScrollView scrollY className={styles.myList}>
+          {myMachines.length > 0 && (
+            <View className={styles.dashboard}>
+              <View className={styles.dashboardHeader}>
+                <Text className={styles.dashboardTitle}>📊 运营看板</Text>
+                <Text className={styles.dashboardSubtitle}>近7天总览</Text>
+              </View>
+              <View className={styles.dashboardOverview}>
+                <View className={styles.dashboardBlock}>
+                  <Text className={styles.dashboardNum}>
+                    {dailyTrends.reduce((s, d) => s + d.views, 0)}
+                  </Text>
+                  <Text className={styles.dashboardLabel}>浏览</Text>
+                </View>
+                <View className={styles.dashboardBlock}>
+                  <Text className={styles.dashboardNum}>
+                    {dailyTrends.reduce((s, d) => s + d.collects, 0)}
+                  </Text>
+                  <Text className={styles.dashboardLabel}>收藏</Text>
+                </View>
+                <View className={styles.dashboardBlock}>
+                  <Text className={styles.dashboardNum}>
+                    {dailyTrends.reduce((s, d) => s + d.consults, 0)}
+                  </Text>
+                  <Text className={styles.dashboardLabel}>咨询</Text>
+                </View>
+                <View className={styles.dashboardBlock}>
+                  <Text className={styles.dashboardNum}>
+                    {dailyTrends.reduce((s, d) => s + d.bookings, 0)}
+                  </Text>
+                  <Text className={styles.dashboardLabel}>预约</Text>
+                </View>
+              </View>
+              <View className={styles.dashboardTrend}>
+                <View className={styles.dashboardTrendTitle}>
+                  <Text>趋势图</Text>
+                  <View className={styles.dashboardTrendTabs}>
+                    {(['views', 'collects', 'consults', 'bookings'] as const).map((k) => {
+                      const labelMap: Record<string, string> = { views: '浏览', collects: '收藏', consults: '咨询', bookings: '预约' };
+                      return (
+                        <View
+                          key={k}
+                          className={classnames(styles.dashboardTrendTab, trendMetric === k && styles.dashboardTrendTabActive)}
+                          onClick={() => setTrendMetric(k)}
+                        >
+                          <Text>{labelMap[k]}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+                <View className={styles.dashboardBars}>
+                  {(() => {
+                    const max = Math.max(1, ...dailyTrends.map((d) => d[trendMetric]));
+                    const lastIdx = dailyTrends.length - 1;
+                    return dailyTrends.map((d, idx) => {
+                      const h = Math.max(6, Math.round((d[trendMetric] / max) * 100));
+                      const isLatest = idx === lastIdx;
+                      return (
+                        <View key={d.date} className={styles.dashboardBarWrap}>
+                          <View
+                            className={classnames(styles.dashboardBar, isLatest && styles.dashboardBarActive)}
+                            style={{ height: `${h}rpx` }}
+                          >
+                            {isLatest && d[trendMetric] > 0 && (
+                              <Text className={styles.dashboardBarVal}>{d[trendMetric]}</Text>
+                            )}
+                          </View>
+                          <Text className={styles.dashboardBarDate}>{d.date}</Text>
+                        </View>
+                      );
+                    });
+                  })()}
+                </View>
+              </View>
+            </View>
+          )}
+
           <SectionHeader title="我的车源" subtitle={`${myMachines.length}台`} />
           {myMachines.length === 0 ? (
             <EmptyState text="还没有发过的车源" hint="点击上方发布新车源" />
@@ -568,6 +652,11 @@ const PublishPage: React.FC = () => {
                       ))}
                     </View>
                   )}
+
+                  {/* 查看咨询/预约明细 */}
+                  <View className={styles.detailBtn} onClick={() => setDetailMachine(m)}>
+                    <Text>📋 查看咨询/预约明细</Text>
+                  </View>
 
                   <View className={styles.myActions}>
                     {m.status === 'online' ? (
@@ -686,6 +775,92 @@ const PublishPage: React.FC = () => {
           </View>
         </View>
       )}
+
+      {/* 咨询/预约明细弹层 */}
+      {detailMachine && (() => {
+        const interactions = getInteractionsForMachine(detailMachine.id);
+        const filtered = interactions.filter((i) => i.type === detailTab);
+        const sourceLabel: Record<string, string> = { find: '来自找车', price_alert: '来自降价提醒', detail: '来自详情' };
+        const sourceChipClass: Record<string, string> = {
+          find: styles.detailSourceChipFind,
+          price_alert: styles.detailSourceChipAlert,
+          detail: styles.detailSourceChipDetail,
+        };
+        const consultCount = interactions.filter((i) => i.type === 'consult').length;
+        const bookingCount = interactions.filter((i) => i.type === 'booking').length;
+        const handleCall = (phone: string, name: string) => {
+          Taro.showToast({ title: `已拨打 ${name} ${phone}`, icon: 'none' });
+        };
+        return (
+          <View className={styles.mask} onClick={() => setDetailMachine(null)}>
+            <View className={styles.detailSheet} onClick={(e) => e.stopPropagation()}>
+              <View className={styles.detailSheetHeader}>
+                <Text className={styles.detailSheetTitle}>运营明细 · {detailMachine.title}</Text>
+                <Text className={styles.detailSheetClose} onClick={() => setDetailMachine(null)}>✕</Text>
+              </View>
+
+              <View className={styles.detailStatsRow}>
+                <View className={styles.detailStatsBlock}>
+                  <Text className={styles.detailStatsNum}>{detailMachine.stats.views}</Text>
+                  <Text className={styles.detailStatsLabel}>浏览</Text>
+                </View>
+                <View className={styles.detailStatsBlock}>
+                  <Text className={styles.detailStatsNum}>{detailMachine.stats.collects}</Text>
+                  <Text className={styles.detailStatsLabel}>收藏</Text>
+                </View>
+                <View className={styles.detailStatsBlock}>
+                  <Text className={styles.detailStatsNum}>{consultCount}</Text>
+                  <Text className={styles.detailStatsLabel}>咨询</Text>
+                </View>
+                <View className={styles.detailStatsBlock}>
+                  <Text className={styles.detailStatsNum}>{bookingCount}</Text>
+                  <Text className={styles.detailStatsLabel}>预约</Text>
+                </View>
+              </View>
+
+              <View className={styles.detailTabBar}>
+                <View
+                  className={classnames(styles.detailTabItem, detailTab === 'consult' && styles.detailTabActive)}
+                  onClick={() => setDetailTab('consult')}
+                >
+                  <Text>咨询({consultCount})</Text>
+                </View>
+                <View
+                  className={classnames(styles.detailTabItem, detailTab === 'booking' && styles.detailTabActive)}
+                  onClick={() => setDetailTab('booking')}
+                >
+                  <Text>预约({bookingCount})</Text>
+                </View>
+              </View>
+
+              {filtered.length === 0 ? (
+                <EmptyState text={`暂无${detailTab === 'consult' ? '咨询' : '预约'}记录`} hint="买家咨询或预约后将显示在这里" />
+              ) : (
+                <View className={styles.detailList}>
+                  {filtered.map((i: MachineInteraction) => (
+                    <View key={i.id} className={styles.detailItem} onClick={() => handleCall(i.userPhone, i.userName)}>
+                      <Image className={styles.detailAvatar} src={i.userAvatar} mode="aspectFill" />
+                      <View className={styles.detailBody}>
+                        <View className={styles.detailHeaderRow}>
+                          <Text className={styles.detailUserName}>{i.userName}</Text>
+                          <View className={classnames(styles.detailSourceChip, sourceChipClass[i.source] || '')}>
+                            <Text>{sourceLabel[i.source]}</Text>
+                          </View>
+                        </View>
+                        {i.content && (
+                          <Text className={styles.detailContent}>{i.content}</Text>
+                        )}
+                        <Text className={styles.detailPhone}>📞 {i.userPhone}</Text>
+                        <Text className={styles.detailTime}>{i.createdAt}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+        );
+      })()}
     </View>
   );
 };

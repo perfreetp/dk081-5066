@@ -641,3 +641,317 @@
   color: $color-text-white;
   font-weight: $font-weight-semibold;
 }
+
+// 运营看板
+.dashboard {
+  background: linear-gradient(135deg, #165dff 0%, #4080ff 100%);
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  color: $color-text-white;
+  box-shadow: 0 8rpx 24rpx rgba(22, 93, 255, 0.25);
+}
+
+.dashboardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.dashboardTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+}
+
+.dashboardSubtitle {
+  font-size: 22rpx;
+  opacity: 0.8;
+}
+
+.dashboardOverview {
+  display: flex;
+  margin-bottom: $spacing-md;
+}
+
+.dashboardBlock {
+  flex: 1;
+  text-align: center;
+  border-right: 1rpx solid rgba(255, 255, 255, 0.2);
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.dashboardNum {
+  display: block;
+  font-size: 44rpx;
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+}
+
+.dashboardLabel {
+  display: block;
+  font-size: 22rpx;
+  opacity: 0.85;
+  margin-top: 4rpx;
+}
+
+.dashboardTrend {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: $radius-md;
+  padding: $spacing-sm;
+}
+
+.dashboardTrendTitle {
+  font-size: 24rpx;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-xs;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dashboardTrendTabs {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.dashboardTrendTab {
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.15);
+  opacity: 0.8;
+}
+
+.dashboardTrendTabActive {
+  background: $color-text-white;
+  color: #165dff;
+  opacity: 1;
+}
+
+.dashboardBars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 120rpx;
+  padding-top: $spacing-xs;
+  gap: 8rpx;
+}
+
+.dashboardBarWrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.dashboardBar {
+  width: 100%;
+  max-width: 36rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 4rpx 4rpx 0 0;
+  min-height: 6rpx;
+  position: relative;
+}
+
+.dashboardBarActive {
+  background: $color-text-white;
+}
+
+.dashboardBarVal {
+  position: absolute;
+  top: -28rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18rpx;
+  opacity: 0.9;
+}
+
+.dashboardBarDate {
+  font-size: 18rpx;
+  opacity: 0.7;
+  margin-top: 6rpx;
+}
+
+// 明细按钮
+.detailBtn {
+  margin-top: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  background: rgba(22, 93, 255, 0.08);
+  border-radius: $radius-sm;
+  text-align: center;
+  font-size: 22rpx;
+  color: $color-primary;
+}
+
+// 明细弹层
+.detailSheet {
+  width: 100%;
+  max-height: 80vh;
+  background: $color-bg-card;
+  border-radius: $radius-lg $radius-lg 0 0;
+  padding: $spacing-lg $page-padding;
+  padding-bottom: calc(#{$spacing-lg} + env(safe-area-inset-bottom));
+  position: relative;
+  overflow-y: auto;
+}
+
+.detailSheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.detailSheetTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.detailSheetClose {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  padding: $spacing-xs;
+}
+
+.detailStatsRow {
+  display: flex;
+  background: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.detailStatsBlock {
+  flex: 1;
+  text-align: center;
+}
+
+.detailStatsNum {
+  display: block;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.detailStatsLabel {
+  display: block;
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  margin-top: 2rpx;
+}
+
+.detailTabBar {
+  display: flex;
+  margin-bottom: $spacing-md;
+  background: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: 4rpx;
+}
+
+.detailTabItem {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-xs 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  border-radius: $radius-sm;
+}
+
+.detailTabActive {
+  background: $color-bg-card;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+  box-shadow: $shadow-card;
+}
+
+.detailList {
+  margin-bottom: $spacing-md;
+}
+
+.detailItem {
+  display: flex;
+  padding: $spacing-sm 0;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.detailAvatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: $color-bg-hover;
+  margin-right: $spacing-sm;
+  flex-shrink: 0;
+}
+
+.detailBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.detailHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detailUserName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.detailSourceChip {
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
+  background: $color-bg-hover;
+  color: $color-text-secondary;
+}
+
+.detailSourceChipFind {
+  background: rgba(22, 93, 255, 0.1);
+  color: #165dff;
+}
+
+.detailSourceChipAlert {
+  background: rgba(255, 107, 0, 0.1);
+  color: #ff6b00;
+}
+
+.detailSourceChipDetail {
+  background: rgba(0, 180, 42, 0.1);
+  color: #00b42a;
+}
+
+.detailContent {
+  font-size: 24rpx;
+  color: $color-text-secondary;
+  margin-top: 4rpx;
+  display: block;
+  line-height: 1.5;
+}
+
+.detailTime {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.detailPhone {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-top: 2rpx;
+  display: block;
+}

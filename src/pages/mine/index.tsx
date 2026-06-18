@@ -131,7 +131,7 @@ const MinePage: React.FC = () => {
             return (
               <View key={p.id} className={styles.alertItem} onClick={handleAlertClick}>
                 <View className={styles.alertIcon}>
-                  <Text>{p.matched ? '�' : '�🔔'}</Text>
+                  <Text>{p.matched ? '📣' : '�'}</Text>
                 </View>
                 <View className={styles.alertBody}>
                   <Text className={styles.alertTitle}>{p.categoryLabel} · {p.modelKeyword}</Text>

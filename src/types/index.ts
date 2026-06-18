@@ -201,6 +201,25 @@ export interface FailRecord {
   createdAt: string;
 }
 
+// 履约步骤
+export type FulfillmentStepKey = 'deposit' | 'handover' | 'final_payment' | 'followup';
+export interface FulfillmentStep {
+  key: FulfillmentStepKey;
+  label: string;
+  done: boolean;
+  at?: string;
+  note?: string;
+}
+export interface Fulfillment {
+  id: string;
+  agreementId: string;
+  steps: FulfillmentStep[];
+  currentStep: number; // 当前进行中的步骤下标
+  finalPayment?: number; // 尾款（元）
+  followupNote?: string;
+  updatedAt: string;
+}
+
 // 关注机型降价提醒
 export interface PriceAlert {
   id: string;
@@ -209,4 +228,27 @@ export interface PriceAlert {
   targetPrice: number;
   currentMinPrice: number; // 0 表示当前没有匹配车源
   matched: boolean; // 是否已达成目标价（含真实对比）
+}
+
+// 车源咨询/预约明细（运营看板用）
+export type InteractionSource = 'find' | 'price_alert' | 'detail';
+export interface MachineInteraction {
+  id: string;
+  machineId: string;
+  type: 'consult' | 'booking';
+  source: InteractionSource;
+  userName: string;
+  userAvatar: string;
+  userPhone: string;
+  content?: string;
+  createdAt: string;
+}
+
+// 近7天运营趋势
+export interface DailyStatsTrend {
+  date: string;
+  views: number;
+  collects: number;
+  consults: number;
+  bookings: number;
 }

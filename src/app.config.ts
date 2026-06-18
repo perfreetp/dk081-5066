@@ -9,7 +9,8 @@ export default defineAppConfig({
     'pages/booking/index',
     'pages/chat/index',
     'pages/agreement/index',
-    'pages/handover/index'
+    'pages/handover/index',
+    'pages/fulfillment/index'
   ],
   window: {
     backgroundTextStyle: 'dark',

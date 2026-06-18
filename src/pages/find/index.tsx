@@ -248,8 +248,12 @@ const FindPage: React.FC = () => {
 
               <View className={styles.formHint}>
                 <Text className={styles.formHintText}>
-                  {alertCategoryLabel} 当前最低价约 ¥{getCategoryMinPrice(alertCategoryLabel)}万，
-                  低于您的目标价时将自动通知
+                  {(() => {
+                    const min = getCategoryMinPrice(alertCategoryLabel);
+                    return min > 0
+                      ? `${alertCategoryLabel} 当前最低价约 ¥${min}万，低于您的目标价时将自动通知`
+                      : `当前暂无在售的${alertCategoryLabel}，有新车源上架时将自动通知`;
+                  })()}
                 </Text>
               </View>
             </View>
